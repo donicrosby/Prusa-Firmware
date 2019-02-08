@@ -9,6 +9,7 @@
 #include "temperature.h"
 #include "stepper.h"
 #include "ConfigurationStore.h"
+#include "printers.h"
 #include <string.h>
 
 
@@ -180,7 +181,9 @@ enum class testScreen
 static int  lcd_selftest_screen(testScreen screen, int _progress, int _progress_scale, bool _clear, int _delay);
 static void lcd_selftest_screen_step(int _row, int _col, int _state, const char *_name, const char *_indicator);
 static bool lcd_selftest_manual_fan_check(int _fan, bool check_opposite);
+#ifdef FANCHECK
 static bool lcd_selftest_fan_dialog(int _fan);
+#endif //FANCHECK
 static bool lcd_selftest_fsensor();
 static bool selftest_irsensor();
 static void lcd_selftest_error(int _error_no, const char *_error_1, const char *_error_2);
@@ -300,8 +303,8 @@ static void lcd_implementation_drawmenu_sdfile_selected(uint8_t row, char* longF
 				j = 0;
 				break;
             }else{
-				if (j == 1) _delay(3);	//wait around 1.2 s to start scrolling text
-				_delay(1);				//then scroll with redrawing every 300 ms 
+				if (j == 1) _delay_ms(3);	//wait around 1.2 s to start scrolling text
+				_delay_ms(1);				//then scroll with redrawing every 300 ms 
             }
 
           }
@@ -1781,6 +1784,7 @@ void lcd_return_to_status()
 	lcd_refresh(); // to maybe revive the LCD if static electricity killed it.
 	menu_goto(lcd_status_screen, 0, false, true);
 	menu_depth = 0;
+     bFilamentAutoloadFlag=false;
 }
 
 //! @brief Pause print, disable nozzle heater, move to park position
@@ -1918,7 +1922,7 @@ static void lcd_menu_extruder_info()
 	 fan_speed_RPM[1]
 	);
 
-#ifdef FILAMENT_SENSOR
+#ifdef PAT9125
 	// Display X and Y difference from Filament sensor    
     // Display Light intensity from Filament sensor
     //  Frame_Avg register represents the average brightness of all pixels within a frame (324 pixels). This
@@ -1944,7 +1948,7 @@ static void lcd_menu_extruder_info()
 			);
 		}
 	}
-#endif //FILAMENT_SENSOR
+#endif //PAT9125
     
     menu_back_if_clicked();
 }
@@ -2260,7 +2264,7 @@ static void lcd_support_menu()
   MENU_ITEM_BACK_P(STR_SEPARATOR);
   MENU_ITEM_SUBMENU_P(_i("XYZ cal. details"), lcd_menu_xyz_y_min);////MSG_XYZ_DETAILS c=19 r=1
   MENU_ITEM_SUBMENU_P(_i("Extruder info"), lcd_menu_extruder_info);////MSG_INFO_EXTRUDER c=18 r=1
-  MENU_ITEM_SUBMENU_P(_i("Show sensors"), lcd_menu_show_sensors_state);////MSG_INFO_SENSORS c=18 r=1
+  MENU_ITEM_SUBMENU_P(_i("Sensor info"), lcd_menu_show_sensors_state);////MSG_INFO_SENSORS c=18 r=1
 
 #ifdef TMC2130
   MENU_ITEM_SUBMENU_P(_i("Belt status"), lcd_menu_belt_status);////MSG_MENU_BELT_STATUS c=18 r=1
@@ -2296,18 +2300,151 @@ void lcd_set_filament_oq_meass()
 }
 
 
+bool bFilamentFirstRun;
+bool bFilamentLoad;
+bool bFilamentPreheatState;
+bool bFilamentAutoloadFlag;
+
+static void mFilamentPrompt()
+{
+lcd_set_cursor(0,0);
+lcdui_print_temp(LCD_STR_THERMOMETER[0],(int)degHotend(0),(int)degTargetHotend(0));
+lcd_set_cursor(0,2);
+lcd_puts_P(_i("Press the knob"));
+lcd_set_cursor(0,3);
+if(bFilamentLoad)
+     lcd_puts_P(_i("to load filament"));
+else lcd_puts_P(_i("to unload filament"));
+if(lcd_clicked())
+     {
+     menu_back();
+     menu_back();
+     if(!bFilamentPreheatState)
+          {
+          menu_back();
+          setTargetHotend0(0.0);
+          }
+     if(bFilamentLoad)
+          {
+          loading_flag = true;
+          enquecommand_P(PSTR("M701"));           // load filament
+          }
+     else enquecommand_P(PSTR("M702"));           // unload filament
+     }
+if(bFilamentLoad)                                 // i.e. not necessary for preHeat @ unload
+     bFilamentAutoloadFlag=false;
+}
+
+void mFilamentItem(uint16_t nTemp)
+{
+static int nTargetOld;
+
+//if(bPreheatState)                                 // not necessary
+     nTargetOld=target_temperature[0];
+setTargetHotend0((float)nTemp);
+lcd_timeoutToStatus.stop();
+lcd_set_cursor(0,0);
+lcdui_print_temp(LCD_STR_THERMOMETER[0],(int)degHotend(0),(int)degTargetHotend(0));
+lcd_set_cursor(0,1);
+if(bFilamentLoad)
+     lcd_puts_P(_i("Preheating to load"));
+else lcd_puts_P(_i("Preheating to unload"));
+lcd_set_cursor(0,3);
+lcd_puts_P(_i(">Cancel"));
+if(lcd_clicked())
+     {
+     if(!bFilamentPreheatState)
+          {
+          setTargetHotend0(0.0);
+          menu_back();
+          }
+     else setTargetHotend0((float)nTargetOld);
+     menu_back();
+     if(bFilamentLoad)                            // i.e. not necessary for preHeat @ unload
+          bFilamentAutoloadFlag=false;
+     }
+else if(!isHeatingHotend0())
+          {
+          menu_submenu(mFilamentPrompt);
+          Sound_MakeSound(e_SOUND_TYPE_StandardPrompt);
+          }
+}
+
+static void mFilamentItem_PLA()
+{
+bFilamentPreheatState=false;
+mFilamentItem(PLA_PREHEAT_HOTEND_TEMP);
+}
+
+static void mFilamentItem_PET()
+{
+bFilamentPreheatState=false;
+mFilamentItem(PET_PREHEAT_HOTEND_TEMP);
+}
+
+static void mFilamentItem_ABS()
+{
+bFilamentPreheatState=false;
+mFilamentItem(ABS_PREHEAT_HOTEND_TEMP);
+}
+
+static void mFilamentItem_HIPS()
+{
+bFilamentPreheatState=false;
+mFilamentItem(HIPS_PREHEAT_HOTEND_TEMP);
+}
+
+static void mFilamentItem_PP()
+{
+bFilamentPreheatState=false;
+mFilamentItem(PP_PREHEAT_HOTEND_TEMP);
+}
+
+static void mFilamentItem_FLEX()
+{
+bFilamentPreheatState=false;
+mFilamentItem(FLEX_PREHEAT_HOTEND_TEMP);
+}
+
+
+void mFilamentBack()
+{
+menu_back();
+if(bFilamentLoad)                                 // i.e. not necessary for preHeat @ unload
+     bFilamentAutoloadFlag=false;
+}
+
+void mFilamentMenu()
+{
+MENU_BEGIN();
+MENU_ITEM_FUNCTION_P(_T(MSG_MAIN),mFilamentBack);
+MENU_ITEM_SUBMENU_P(PSTR("PLA  -  " STRINGIFY(PLA_PREHEAT_HOTEND_TEMP)),mFilamentItem_PLA);
+MENU_ITEM_SUBMENU_P(PSTR("PET  -  " STRINGIFY(PET_PREHEAT_HOTEND_TEMP)),mFilamentItem_PET);
+MENU_ITEM_SUBMENU_P(PSTR("ABS  -  " STRINGIFY(ABS_PREHEAT_HOTEND_TEMP)),mFilamentItem_ABS);
+MENU_ITEM_SUBMENU_P(PSTR("HIPS -  " STRINGIFY(HIPS_PREHEAT_HOTEND_TEMP)),mFilamentItem_HIPS);
+MENU_ITEM_SUBMENU_P(PSTR("PP   -  " STRINGIFY(PP_PREHEAT_HOTEND_TEMP)),mFilamentItem_PP);
+MENU_ITEM_SUBMENU_P(PSTR("FLEX -  " STRINGIFY(FLEX_PREHEAT_HOTEND_TEMP)),mFilamentItem_FLEX);
+MENU_END();
+}
+
+
 void lcd_unLoadFilament()
 {
-
-  if (degHotend0() > EXTRUDE_MINTEMP) {
-	
-	  enquecommand_P(PSTR("M702")); //unload filament
-
-  } else {
-	  show_preheat_nozzle_warning();
-  }
-
-  menu_back();
+if((degHotend0()>EXTRUDE_MINTEMP)&&bFilamentFirstRun)
+     {
+     menu_back();
+     enquecommand_P(PSTR("M702"));                // unload filament
+     }
+else {
+     bFilamentLoad=false;                         // i.e. filament unloading mode
+     bFilamentFirstRun=false;
+     if(target_temperature[0]>=EXTRUDE_MINTEMP)
+          {
+          bFilamentPreheatState=true;
+          mFilamentItem(target_temperature[0]);
+          }
+     else mFilamentMenu();
+     }
 }
 
 
@@ -2321,9 +2458,10 @@ void lcd_wait_interact() {
 #else
   lcd_puts_P(_i("Insert filament"));////MSG_INSERT_FILAMENT c=20 r=0
 #endif
-  lcd_set_cursor(0, 2);
-  lcd_puts_P(_i("and press the knob"));////MSG_PRESS c=20 r=0
-
+  if (!fsensor_autoload_enabled) {
+	  lcd_set_cursor(0, 2);
+	  lcd_puts_P(_i("and press the knob"));////MSG_PRESS c=20 r=0
+  }
 }
 
 
@@ -2513,23 +2651,9 @@ void lcd_load_filament_color_check()
 #ifdef FILAMENT_SENSOR
 static void lcd_menu_AutoLoadFilament()
 {
-    if (degHotend0() > EXTRUDE_MINTEMP)
-    {
-        uint8_t nlines;
-        lcd_display_message_fullscreen_nonBlocking_P(_i("Autoloading filament is active, just press the knob and insert filament..."),nlines);////MSG_AUTOLOADING_ENABLED c=20 r=4
-    }
-    else
-    {
-        static_assert(sizeof(menu_data)>=sizeof(ShortTimer), "ShortTimer doesn't fit into menu_data");
-		ShortTimer* ptimer = (ShortTimer*)&(menu_data[0]);
-        if (!ptimer->running()) ptimer->start();
-        lcd_set_cursor(0, 0);
-        lcd_puts_P(_T(MSG_ERROR));
-        lcd_set_cursor(0, 2);
-        lcd_puts_P(_T(MSG_PREHEAT_NOZZLE));
-        if (ptimer->expired(2000ul)) menu_back();
-    }
-    menu_back_if_clicked();
+     uint8_t nlines;
+     lcd_display_message_fullscreen_nonBlocking_P(_i("Autoloading filament is active, just press the knob and insert filament..."),nlines);////MSG_AUTOLOADING_ENABLED c=20 r=4
+     menu_back_if_clicked();
 }
 #endif //FILAMENT_SENSOR
 
@@ -2537,6 +2661,7 @@ static void lcd_LoadFilament()
 {
   if (degHotend0() > EXTRUDE_MINTEMP)
   {
+//      menu_back();                                // not necessary (see "lcd_return_to_status()" below)
       custom_message_type = CUSTOM_MSG_TYPE_F_LOAD;
       loading_flag = true;
       enquecommand_P(PSTR("M701")); //load filament
@@ -2545,7 +2670,14 @@ static void lcd_LoadFilament()
   }
   else
   {
-	  show_preheat_nozzle_warning();
+     bFilamentLoad=true;                          // i.e. filament loading mode
+     bFilamentFirstRun=false;
+     if(target_temperature[0]>=EXTRUDE_MINTEMP)
+          {
+          bFilamentPreheatState=true;
+          mFilamentItem(target_temperature[0]);
+          }
+     else mFilamentMenu();
   }
 }
 
@@ -2934,8 +3066,6 @@ void lcd_adjust_bed_reset(void)
 	_md->status = 0;
 }
 
-#define BED_ADJUSTMENT_UM_MAX 50
-
 void lcd_adjust_bed(void)
 {
 	_menu_data_adjust_bed_t* _md = (_menu_data_adjust_bed_t*)&(menu_data[0]);
@@ -3208,7 +3338,12 @@ bool lcd_calibrate_z_end_stop_manual(bool only_z)
 calibrated:
     // Let the machine think the Z axis is a bit higher than it is, so it will not home into the bed
     // during the search for the induction points.
-    current_position[Z_AXIS] = Z_MAX_POS-3.f;
+	if ((PRINTER_TYPE == PRINTER_MK25) || (PRINTER_TYPE == PRINTER_MK2) || (PRINTER_TYPE == PRINTER_MK2_SNMM)) {
+		current_position[Z_AXIS] = Z_MAX_POS-3.f;
+	}
+	else {
+		current_position[Z_AXIS] = Z_MAX_POS+4.f;
+	}
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
     return true;
 
@@ -3678,8 +3813,8 @@ static void lcd_show_sensors_state()
 	if (mmu_enabled) {
 		finda_state = mmu_finda;
 	}
-	if (mmu_idler_sensor_detected) {
-		idler_state = !PIN_GET(MMU_IDLER_SENSOR_PIN);
+	if (ir_sensor_detected) {
+		idler_state = !PIN_GET(IR_SENSOR_PIN);
 	}
 	lcd_puts_at_P(0, 0, _i("Sensor state"));
 	lcd_puts_at_P(1, 1, _i("PINDA:"));
@@ -5956,7 +6091,11 @@ static void lcd_main_menu()
 			MENU_ITEM_SUBMENU_P(_i("AutoLoad filament"), lcd_menu_AutoLoadFilament);////MSG_AUTOLOAD_FILAMENT c=17 r=0
 		else
 #endif //FILAMENT_SENSOR
-			MENU_ITEM_FUNCTION_P(_T(MSG_LOAD_FILAMENT), lcd_LoadFilament);
+          {
+               bFilamentFirstRun=true;
+			MENU_ITEM_SUBMENU_P(_T(MSG_LOAD_FILAMENT), lcd_LoadFilament);
+          }
+          bFilamentFirstRun=true;
 		MENU_ITEM_SUBMENU_P(_T(MSG_UNLOAD_FILAMENT), lcd_unLoadFilament);
 	}
 	MENU_ITEM_SUBMENU_P(_T(MSG_SETTINGS), lcd_settings_menu);
@@ -6450,25 +6589,31 @@ bool lcd_selftest()
 	{
 		_progress = lcd_selftest_screen(testScreen::hotendOk, _progress, 3, true, 2000); //nozzle ok
 	}
-
 #ifdef FILAMENT_SENSOR
     if (_result)
     {
-        _progress = lcd_selftest_screen(testScreen::fsensor, _progress, 3, true, 2000); //check filaments sensor
+
         if (mmu_enabled)
-        {
+        {        
+			_progress = lcd_selftest_screen(testScreen::fsensor, _progress, 3, true, 2000); //check filaments sensor
             _result = selftest_irsensor();
+		    if (_result)
+			{
+				_progress = lcd_selftest_screen(testScreen::fsensorOk, _progress, 3, true, 2000); //fil sensor OK
+			}
         } else
         {
+#ifdef PAT9125
+			_progress = lcd_selftest_screen(testScreen::fsensor, _progress, 3, true, 2000); //check filaments sensor
             _result = lcd_selftest_fsensor();
+			if (_result)
+			{
+				_progress = lcd_selftest_screen(testScreen::fsensorOk, _progress, 3, true, 2000); //fil sensor OK
+			}
+#endif //PAT9125
         }
     }
-    if (_result)
-    {
-        _progress = lcd_selftest_screen(testScreen::fsensorOk, _progress, 3, true, 2000); //fil sensor OK
-    }
-#endif // FILAMENT_SENSOR
-
+#endif //FILAMENT_SENSOR
 	if (_result)
 	{
 		_progress = lcd_selftest_screen(testScreen::allCorrect, _progress, 3, true, 5000); //all correct
@@ -7036,7 +7181,7 @@ static bool lcd_selftest_fsensor(void)
 //!  * Pre-heat to PLA extrude temperature.
 //!  * Unload filament possibly present.
 //!  * Move extruder idler same way as during filament load
-//!    and sample MMU_IDLER_SENSOR_PIN.
+//!    and sample IR_SENSOR_PIN.
 //!  * Check that pin doesn't go low.
 //!
 //! @retval true passed
@@ -7073,7 +7218,7 @@ static bool selftest_irsensor()
         mmu_load_step(false);
         while (blocks_queued())
         {
-            if (PIN_GET(MMU_IDLER_SENSOR_PIN) == 0) return false;
+            if (PIN_GET(IR_SENSOR_PIN) == 0) return false;
 #ifdef TMC2130
             manage_heater();
             // Vojtech: Don't disable motors inside the planner!
@@ -7116,7 +7261,12 @@ static bool lcd_selftest_manual_fan_check(int _fan, bool check_opposite)
 		if (check_opposite == true) lcd_puts_P(_T(MSG_SELFTEST_EXTRUDER_FAN));
 		else lcd_puts_P(_T(MSG_SELFTEST_COOLING_FAN));
 		SET_OUTPUT(FAN_PIN);
+#ifdef FAN_SOFT_PWM
+		fanSpeedSoftPwm = 255;
+#else //FAN_SOFT_PWM
 		analogWrite(FAN_PIN, 255);
+#endif //FAN_SOFT_PWM
+
 		break;
 	}
 	_delay(500);
@@ -7141,7 +7291,11 @@ static bool lcd_selftest_manual_fan_check(int _fan, bool check_opposite)
 		case 1:
 			// object cooling fan
 			SET_OUTPUT(FAN_PIN);
+#ifdef FAN_SOFT_PWM
+			fanSpeedSoftPwm = 255;
+#else //FAN_SOFT_PWM
 			analogWrite(FAN_PIN, 255);
+#endif //FAN_SOFT_PWM
 			break;
 		}
 
@@ -7174,8 +7328,11 @@ static bool lcd_selftest_manual_fan_check(int _fan, bool check_opposite)
 	SET_OUTPUT(EXTRUDER_0_AUTO_FAN_PIN);
 	WRITE(EXTRUDER_0_AUTO_FAN_PIN, 0);
 	SET_OUTPUT(FAN_PIN);
+#ifdef FAN_SOFT_PWM
+	fanSpeedSoftPwm = 0;
+#else //FAN_SOFT_PWM
 	analogWrite(FAN_PIN, 0);
-
+#endif //FAN_SOFT_PWM
 	fanSpeed = 0;
 	manage_heater();
 
@@ -7183,20 +7340,29 @@ static bool lcd_selftest_manual_fan_check(int _fan, bool check_opposite)
 
 }
 
-
+#ifdef FANCHECK
 static bool lcd_selftest_fan_dialog(int _fan)
 {
 	bool _result = true;
 	int _errno = 7;
-
 	switch (_fan) {
 	case 0:
 		fanSpeed = 0;
 		manage_heater();			//turn off fan
 		setExtruderAutoFanState(EXTRUDER_0_AUTO_FAN_PIN, 1); //extruder fan
+#ifdef FAN_SOFT_PWM
+		extruder_autofan_last_check = _millis();
+		fan_measuring = true;
+#endif //FAN_SOFT_PWM
 		_delay(2000);				//delay_keep_alive would turn off extruder fan, because temerature is too low
+
 		manage_heater();			//count average fan speed from 2s delay and turn off fans
 		if (!fan_speed[0]) _result = false;
+
+		
+		printf_P(PSTR("Test 1:\n"));
+		printf_P(PSTR("Print fan speed: %d \n"), fan_speed[1]);
+		printf_P(PSTR("Extr fan speed: %d \n"), fan_speed[0]);
 		//SERIAL_ECHOPGM("Extruder fan speed: ");
 		//MYSERIAL.println(fan_speed[0]);
 		//SERIAL_ECHOPGM("Print fan speed: ");
@@ -7205,7 +7371,14 @@ static bool lcd_selftest_fan_dialog(int _fan)
 
 	case 1:
 		//will it work with Thotend > 50 C ?
+#ifdef FAN_SOFT_PWM		
+		fanSpeed = 255;	
+		fanSpeedSoftPwm = 255;	
+		extruder_autofan_last_check = _millis(); //store time when measurement starts
+		fan_measuring = true; //start fan measuring, rest is on manage_heater
+#else //FAN_SOFT_PWM
 		fanSpeed = 150;				//print fan
+#endif //FAN_SOFT_PWM
 		for (uint8_t i = 0; i < 5; i++) {
 			delay_keep_alive(1000);
 			lcd_set_cursor(18, 3);
@@ -7214,15 +7387,26 @@ static bool lcd_selftest_fan_dialog(int _fan)
 			lcd_set_cursor(18, 3);
 			lcd_print("|");
 		}
+#ifdef FAN_SOFT_PWM
+		fanSpeed = 0;
+		fanSpeedSoftPwm = 0;	
+#else //FAN_SOFT_PWM
 		fanSpeed = 0;
 		manage_heater();			//turn off fan
 		manage_inactivity(true);	//to turn off print fan
+#endif //FAN_SOFT_PWM
+		printf_P(PSTR("Test 2:\n"));
+		printf_P(PSTR("Print fan speed: %d \n"), fan_speed[1]);
+		printf_P(PSTR("Extr fan speed: %d \n"), fan_speed[0]);
 		if (!fan_speed[1]) {
 			_result = false; _errno = 6; //print fan not spinning
 		}
+#ifdef FAN_SOFT_PWM 
+		else {
+#else //FAN_SOFT_PWM
 		else if (fan_speed[1] < 34) { //fan is spinning, but measured RPM are too low for print fan, it must be left extruder fan
+#endif //FAN_SOFT_PWM
 			//check fans manually
-
 			_result = lcd_selftest_manual_fan_check(1, true); //turn on print fan and check that left extruder fan is not spinning
 			if (_result) {
 				_result = lcd_selftest_manual_fan_check(1, false); //print fan is stil turned on; check that it is spinning
@@ -7245,6 +7429,8 @@ static bool lcd_selftest_fan_dialog(int _fan)
 	}
 	return _result;
 }
+
+#endif //FANCHECK
 
 static int lcd_selftest_screen(testScreen screen, int _progress, int _progress_scale, bool _clear, int _delay)
 {
