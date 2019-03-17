@@ -51,3 +51,6 @@ Firmware/Doc
 /build-env/
 /Firmware/Firmware.vcxproj
 /Firmware/Configuration_prusa_bckp.h
+**/.DS_Store
+.out/**/*
+.vscode/**/*
