@@ -17,6 +17,7 @@
 // Printer name
 #define CUSTOM_MENDEL_NAME "Prusa i3 MK3S"
 
+
 // Electronics
 #define MOTHERBOARD BOARD_EINSY_1_0a
 #define STEEL_SHEET
