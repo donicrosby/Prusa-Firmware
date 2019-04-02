@@ -216,7 +216,7 @@
 
 // Unload filament commands
 #define UNLOAD_FILAMENT_0 "M83"
-#define UNLOAD_FILAMENT_1 "G1 E-100 F7000"
+#define UNLOAD_FILAMENT_1 "G1 E-100 F4800"
 
 /*------------------------------------
  CHANGE FILAMENT SETTINGS
