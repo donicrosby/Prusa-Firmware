@@ -36,7 +36,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,830}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,415}
 
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -61,7 +61,7 @@
 #define X_MIN_POS 0
 #define Y_MAX_POS 210
 #define Y_MIN_POS -4
-#define Z_MAX_POS 203
+#define Z_MAX_POS 205
 #define Z_MIN_POS 0.15
 
 // Canceled home position
@@ -216,7 +216,7 @@
 
 // Unload filament commands
 #define UNLOAD_FILAMENT_0 "M83"
-#define UNLOAD_FILAMENT_1 "G1 E-100 F2400"
+#define UNLOAD_FILAMENT_1 "G1 E-100 F4800"
 
 /*------------------------------------
  CHANGE FILAMENT SETTINGS
