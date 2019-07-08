@@ -36,7 +36,7 @@
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
   {                                 \
-    100, 100, 3200 / 8, 830         \
+    100, 100, 3200 / 8, 415         \
   }
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
@@ -216,7 +216,7 @@
 
 #define TMC2130_USTEPS_XY 16 // microstep resolution for XY axes
 #define TMC2130_USTEPS_Z 16  // microstep resolution for Z axis
-#define TMC2130_USTEPS_E 16  // microstep resolution for E axis
+#define TMC2130_USTEPS_E 8   // microstep resolution for E axis
 #define TMC2130_INTPOL_XY 1  // extrapolate 256 for XY axes
 #define TMC2130_INTPOL_Z 1   // extrapolate 256 for Z axis
 #define TMC2130_INTPOL_E 1   // extrapolate 256 for E axis
