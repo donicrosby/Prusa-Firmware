@@ -52,5 +52,7 @@ Firmware/Doc
 /Firmware/Firmware.vcxproj
 /Firmware/Configuration_prusa_bckp.h
 **/.DS_Store
-.out/**/*
+build/**/*
 .vscode/**/*
+.piolibdeps/**/*
+Firmware/Configure_prusa.h
