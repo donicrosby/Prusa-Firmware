@@ -66,7 +66,7 @@
 #define Z_MAX_POS 210
 #define Z_MIN_POS 0.15
 
-// Uncomment Z_MAX_POS_XYZ_CALIBRATION_CORRECTION define for using the MK3S and MK2.5S firmware 
+// Uncomment Z_MAX_POS_XYZ_CALIBRATION_CORRECTION define for using the MK3S and MK2.5S firmware
 //                                                in combination with an extruder different from Prusa.
 //                                                -or-
 //                                                when the printer is an MK3
@@ -75,7 +75,7 @@
 //                                                The correct value for a MK3S extruder is 9.0, for all other printers choose 2.0.
 
 // This is only relevant for "S" firmware and an extruder like the Bondtech BMG or Bear extruders.
-#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0 // This represents the correction as needed for a non MK3S extruder 
+#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0 // This represents the correction as needed for a non MK3S extruder
 
 // Canceled home position
 #define X_CANCEL_POS 50
@@ -289,7 +289,7 @@
   {                        \
     16, 20, 35, 30         \
   }                                 // default running currents for all axes
-#define TMC2130_UNLOAD_CURRENT_R 20 // lowe current for M600 to protect filament sensor
+#define TMC2130_UNLOAD_CURRENT_R 12 // lowe current for M600 to protect filament sensor
 
 #define TMC2130_STEALTH_Z
 
