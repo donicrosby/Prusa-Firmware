@@ -39,10 +39,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#define DEFAULT_AXIS_STEPS_PER_UNIT \
-  {                                 \
-    100, 100, 3200 / 8, 415         \
-  }
+#define DEFAULT_AXIS_STEPS_PER_UNIT {100, 100, 3200 / 8, 415}
 
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -91,10 +88,7 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE \
-  {                     \
-    3000, 3000, 800, 0  \
-  } // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
+#define HOMING_FEEDRATE {3000, 3000, 800, 0} // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
 
 /**
  * [0,0] steel sheet print area point X coordinate in bed print area coordinates
@@ -105,30 +99,15 @@
  */
 #define SHEET_PRINT_ZERO_REF_Y 0.f
 
-#define DEFAULT_MAX_FEEDRATE \
-  {                          \
-    200, 200, 12, 120        \
-  } // (mm/sec)   max feedrate (M203)
-#define DEFAULT_MAX_FEEDRATE_SILENT \
-  {                                 \
-    172, 172, 12, 120               \
-  } // (mm/sec)   max feedrate (M203), silent mode
-#define DEFAULT_MAX_ACCELERATION \
-  {                              \
-    1000, 1000, 200, 5000        \
-  } // (mm/sec^2) max acceleration (M201)
-#define DEFAULT_MAX_ACCELERATION_SILENT \
-  {                                     \
-    960, 960, 200, 5000                 \
-  } // (mm/sec^2) max acceleration (M201), silent mode
+#define DEFAULT_MAX_FEEDRATE {200, 200, 12, 120} // (mm/sec)   max feedrate (M203)
+#define DEFAULT_MAX_FEEDRATE_SILENT {172, 172, 12, 120} // (mm/sec)   max feedrate (M203), silent mode
+#define DEFAULT_MAX_ACCELERATION {1000, 1000, 200, 5000} // (mm/sec^2) max acceleration (M201)
+#define DEFAULT_MAX_ACCELERATION_SILENT {960, 960, 200, 5000} // (mm/sec^2) max acceleration (M201), silent mode
 
 #define DEFAULT_ACCELERATION 1250         // X, Y, Z and E max acceleration in mm/s^2 for printing moves (M204S)
 #define DEFAULT_RETRACT_ACCELERATION 1250 // X, Y, Z and E max acceleration in mm/s^2 for retracts (M204T)
 
-#define MANUAL_FEEDRATE   \
-  {                       \
-    2700, 2700, 1000, 100 \
-  } // set the speeds for manual moves (mm/min)
+#define MANUAL_FEEDRATE   {2700, 2700, 1000, 100} // set the speeds for manual moves (mm/min)
 
 //number of bytes from end of the file to start check
 #define END_FILE_SECTION 20000
@@ -303,26 +282,14 @@
  *------------------------------------*/
 
 // Motor Current setting for BIG RAMBo
-#define DIGIPOT_MOTOR_CURRENT \
-  {                           \
-    135, 135, 135, 135, 135   \
-  } // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
-#define DIGIPOT_MOTOR_CURRENT_LOUD \
-  {                                \
-    135, 135, 135, 135, 135        \
-  }
+#define DIGIPOT_MOTOR_CURRENT {135, 135, 135, 135, 135} // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
+#define DIGIPOT_MOTOR_CURRENT_LOUD {135, 135, 135, 135, 135}
 
 // Motor Current settings for RAMBo mini PWM value = MotorCurrentSetting * 255 / range
 #if MOTHERBOARD == BOARD_RAMBO_MINI_1_0 || MOTHERBOARD == BOARD_RAMBO_MINI_1_3
 #define MOTOR_CURRENT_PWM_RANGE 2000
-#define DEFAULT_PWM_MOTOR_CURRENT \
-  {                               \
-    270, 830, 450                 \
-  } // {XY,Z,E}
-#define DEFAULT_PWM_MOTOR_CURRENT_LOUD \
-  {                                    \
-    540, 830, 500                      \
-  } // {XY,Z,E}
+#define DEFAULT_PWM_MOTOR_CURRENT {270, 830, 450} // {XY,Z,E}
+#define DEFAULT_PWM_MOTOR_CURRENT_LOUD {540, 830, 500} // {XY,Z,E}
 #define Z_SILENT 0
 #define Z_HIGH_POWER 200
 #endif
