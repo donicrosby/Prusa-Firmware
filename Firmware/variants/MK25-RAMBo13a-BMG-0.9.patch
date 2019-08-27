@@ -1,0 +1,61 @@
+--- 1_75mm_MK25-RAMBo13a-E3Dv6full.h	2019-08-27 20:01:23.000000000 +0200
++++ MK25-RAMBo13a-BMG-0.9.h	2019-08-27 20:25:29.000000000 +0200
+@@ -19,7 +19,7 @@
+ #define DEVELOPER
+ 
+ // Printer name
+-#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5"
++#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5"
+ 
+ // Electronics
+ #define MOTHERBOARD BOARD_RAMBO_MINI_1_3
+@@ -40,7 +40,7 @@
+  *------------------------------------*/
+ 
+ // Steps per unit {X,Y,Z,E}
+-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,133}
++#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,830}
+ 
+ // Endstop inverting
+ #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
+@@ -68,6 +68,17 @@
+ #define Z_MAX_POS 210
+ #define Z_MIN_POS 0.15
+ 
++// Uncomment Z_MAX_POS_XYZ_CALIBRATION_CORRECTION define for using the MK3S and MK2.5S firmware 
++//                                                in combination with an extruder different from Prusa.
++//                                                -or-
++//                                                when the printer is an MK3
++//                                                The Prusa settings only seem correct for MK3 and MK3S firmware.
++//
++//                                                The correct value for a MK3S extruder is 9.0, for all other printers choose 2.0.
++
++// This is only relevant for "S" firmware and an extruder like the Bondtech BMG or Bear extruders.
++#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0 // This represents the correction as needed for a non MK3S extruder 
++
+ // Canceled home position
+ #define X_CANCEL_POS 50
+ #define Y_CANCEL_POS 190
+@@ -220,11 +231,11 @@
+ // Load filament commands
+ #define LOAD_FILAMENT_0 "M83"
+ #define LOAD_FILAMENT_1 "G1 E70 F400"
+-#define LOAD_FILAMENT_2 "G1 E40 F100"
++#define LOAD_FILAMENT_2 "G1 E50 F100"
+ 
+ // Unload filament commands
+ #define UNLOAD_FILAMENT_0 "M83"
+-#define UNLOAD_FILAMENT_1 "G1 E-80 F7000"
++#define UNLOAD_FILAMENT_1 "G1 E-100 F2400"
+ 
+ /*------------------------------------
+  CHANGE FILAMENT SETTINGS
+@@ -240,7 +251,7 @@
+ #define FILAMENTCHANGE_FINALRETRACT -80
+ 
+ #define FILAMENTCHANGE_FIRSTFEED 70 //E distance in mm for fast filament loading sequence used used in filament change (M600)
+-#define FILAMENTCHANGE_FINALFEED 25 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
++#define FILAMENTCHANGE_FINALFEED 35 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
+ #define FILAMENTCHANGE_RECFEED 5
+ 
+ #define FILAMENTCHANGE_XYFEED 50

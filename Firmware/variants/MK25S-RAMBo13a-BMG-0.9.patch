@@ -1,0 +1,140 @@
+--- 1_75mm_MK25S-RAMBo13a-E3Dv6full.h	2019-08-27 20:01:23.000000000 +0200
++++ MK25S-RAMBo13a-BMG-0.9.h	2019-08-27 21:45:42.000000000 +0200
+@@ -19,7 +19,7 @@
+ #define DEVELOPER
+ 
+ // Printer name
+-#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5S"
++#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5S"
+ 
+ // Electronics
+ #define MOTHERBOARD BOARD_RAMBO_MINI_1_3
+@@ -34,13 +34,12 @@
+ //#define E3D_PT100_BED_WITH_AMP
+ //#define E3D_PT100_BED_NO_AMP
+ 
+-
+ /*------------------------------------
+  AXIS SETTINGS
+  *------------------------------------*/
+ 
+ // Steps per unit {X,Y,Z,E}
+-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,133}
++#define DEFAULT_AXIS_STEPS_PER_UNIT {100,100,3200/8,830}
+ 
+ // Endstop inverting
+ #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
+@@ -68,6 +67,17 @@
+ #define Z_MAX_POS 210
+ #define Z_MIN_POS 0.15
+ 
++// Uncomment Z_MAX_POS_XYZ_CALIBRATION_CORRECTION define for using the MK3S and MK2.5S firmware 
++//                                                in combination with an extruder different from Prusa.
++//                                                -or-
++//                                                when the printer is an MK3
++//                                                The Prusa settings only seem correct for MK3 and MK3S firmware.
++//
++//                                                The correct value for a MK3S extruder is 9.0, for all other printers choose 2.0.
++
++// This is only relevant for "S" firmware and an extruder like the Bondtech BMG or Bear extruders.
++#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0 // This represents the correction as needed for a non MK3S extruder 
++
+ // Canceled home position
+ #define X_CANCEL_POS 50
+ #define Y_CANCEL_POS 190
+@@ -94,7 +104,6 @@
+ #define DEFAULT_MAX_ACCELERATION      {1000, 1000, 200, 5000}  // (mm/sec^2) max acceleration (M201)
+ #define DEFAULT_MAX_ACCELERATION_SILENT     {960, 960, 200, 5000}    // (mm/sec^2) max acceleration (M201), silent mode
+ 
+-
+ #define DEFAULT_ACCELERATION          1250   // X, Y, Z and E max acceleration in mm/s^2 for printing moves (M204S)
+ #define DEFAULT_RETRACT_ACCELERATION  1250   // X, Y, Z and E max acceleration in mm/s^2 for retracts (M204T)
+ 
+@@ -123,7 +132,6 @@
+ #define FILAMENT_SENSOR
+ #define IR_SENSOR
+ 
+-
+ #define DEBUG_DCODE3
+ 
+ //#define DEBUG_BUILD
+@@ -158,7 +166,6 @@
+ 
+ //#define FSENSOR_QUALITY
+ 
+-
+ /*------------------------------------
+  EXTRUDER SETTINGS
+  *------------------------------------*/
+@@ -212,7 +219,6 @@
+ #define EXTRUDER_AUTO_FAN_TEMPERATURE 50
+ #define EXTRUDER_AUTO_FAN_SPEED   255  // == full speed
+ 
+-
+ /*------------------------------------
+  LOAD/UNLOAD FILAMENT SETTINGS
+  *------------------------------------*/
+@@ -220,11 +226,11 @@
+ // Load filament commands
+ #define LOAD_FILAMENT_0 "M83"
+ #define LOAD_FILAMENT_1 "G1 E70 F400"
+-#define LOAD_FILAMENT_2 "G1 E40 F100"
++#define LOAD_FILAMENT_2 "G1 E50 F100"
+ 
+ // Unload filament commands
+ #define UNLOAD_FILAMENT_0 "M83"
+-#define UNLOAD_FILAMENT_1 "G1 E-80 F7000"
++#define UNLOAD_FILAMENT_1 "G1 E-100 F2400"
+ 
+ /*------------------------------------
+  CHANGE FILAMENT SETTINGS
+@@ -240,7 +246,7 @@
+ #define FILAMENTCHANGE_FINALRETRACT -80
+ 
+ #define FILAMENTCHANGE_FIRSTFEED 70 //E distance in mm for fast filament loading sequence used used in filament change (M600)
+-#define FILAMENTCHANGE_FINALFEED 25 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
++#define FILAMENTCHANGE_FINALFEED 35 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701)
+ #define FILAMENTCHANGE_RECFEED 5
+ 
+ #define FILAMENTCHANGE_XYFEED 50
+@@ -347,7 +353,6 @@
+ #define BED_OFFSET_START 40
+ #define BED_OFFSET_CENTER 50
+ 
+-
+ #ifdef PIDTEMPBED
+ //120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+ //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
+@@ -371,7 +376,6 @@
+ // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
+ #endif // PIDTEMPBED
+ 
+-
+ /*-----------------------------------
+  PREHEAT SETTINGS
+  *------------------------------------*/
+@@ -505,7 +509,6 @@
+ 
+ #define MIN_PRINT_FAN_SPEED 75
+ 
+-
+ #define M600_TIMEOUT 600  //seconds
+ 
+ //#define SUPPORT_VERBOSITY
+@@ -515,13 +518,9 @@
+ #define MMU_DEBUG //print communication between MMU2 and printer on serial
+ //#define MMU_HAS_CUTTER
+ 
+-// This is experimental feature requested by our test department.
+-// There is no known use for ordinary user. If enabled by this macro
+-// and enabled from printer menu (not enabled by default). It cuts filament
+-// every time when switching filament from gcode. MMU_HAS_CUTTER needs to be
+-// defined.
+-
+-//#define MMU_ALWAYS_CUT
+ #define MMU_IDLER_SENSOR_ATTEMPTS_NR 21 //max. number of attempts to load filament if first load failed; value for max bowden length and case when loading fails right at the beginning
+ 
++//#define HEATBED_ANALYSIS //for meash bed leveling and heatbed analysis D-codes D80 and D81
++//#define MICROMETER_LOGGING //related to D-codes D80 and D81, currently works on MK2.5 only (MK3 board pin definitions missing)
++
+ #endif //__CONFIGURATION_PRUSA_H
