@@ -40,7 +40,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,830}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,415}
 
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -67,17 +67,7 @@
 #define Y_MIN_POS -4
 #define Z_MAX_POS 210
 #define Z_MIN_POS 0.15
-
-// Uncomment Z_MAX_POS_XYZ_CALIBRATION_CORRECTION define for using the MK3S and MK2.5S firmware 
-//                                                in combination with an extruder different from Prusa.
-//                                                -or-
-//                                                when the printer is an MK3
-//                                                The Prusa settings only seem correct for MK3 and MK3S firmware.
-//
-//                                                The correct value for a MK3S extruder is 9.0, for all other printers choose 2.0.
-
-// This is only relevant for "S" firmware and an extruder like the Bondtech BMG or Bear extruders.
-#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0 // This represents the correction as needed for a non MK3S extruder 
+#define Z_MAX_POS_XYZ_CALIBRATION_CORRECTION 2.0
 
 // Canceled home position
 #define X_CANCEL_POS 50
@@ -235,7 +225,7 @@
 
 // Unload filament commands
 #define UNLOAD_FILAMENT_0 "M83"
-#define UNLOAD_FILAMENT_1 "G1 E-100 F2400"
+#define UNLOAD_FILAMENT_1 "G1 E-100 F7000"
 
 /*------------------------------------
  CHANGE FILAMENT SETTINGS
@@ -248,7 +238,7 @@
 #define FILAMENTCHANGE_YPOS 0
 #define FILAMENTCHANGE_ZADD 2
 #define FILAMENTCHANGE_FIRSTRETRACT -2
-#define FILAMENTCHANGE_FINALRETRACT -80
+#define FILAMENTCHANGE_FINALRETRACT -100
 
 #define FILAMENTCHANGE_FIRSTFEED 70 //E distance in mm for fast filament loading sequence used used in filament change (M600)
 #define FILAMENTCHANGE_FINALFEED 35 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
