@@ -2,10 +2,8 @@ import shutil
 Import("env")
 
 def copy_hex(source, target, env):
-  buildDir = env['PROJECTBUILD_DIR'] + "/" + env['PIOENV']
-  fileHex = env['PROGNAME'] + ".hex"
-  sourceFile = buildDir + "/" + fileHex
-  destinationFile = buildDir + "/../" + fileHex
+  sourceFile = str(target[0])
+  destinationFile = env['PROJECT_BUILD_DIR'] + "/" + env['PROGNAME'] + ".hex"
   shutil.copyfile(sourceFile, destinationFile)
 
-env.AddPostAction("buildprog", copy_hex)
+env.AddPostAction("$BUILD_DIR/${PROGNAME}.hex", copy_hex)
