@@ -69,8 +69,10 @@ unsigned long fsensor_softfail_last = 0;
 uint8_t fsensor_softfail_ccnt = 0;
 #endif
 
+#ifdef DEBUG_FSENSOR_LOG
 //! log flag: 0=log disabled, 1=log enabled
 uint8_t fsensor_log = 1;
+#endif //DEBUG_FSENSOR_LOG
 
 
 //! @name filament autoload variables
@@ -119,7 +121,7 @@ int16_t fsensor_oq_yd_max;
 uint16_t fsensor_oq_sh_sum;
 //! @}
 
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
 ClFsensorPCB oFsensorPCB;
 ClFsensorActionNA oFsensorActionNA;
 bool bIRsensorStateFlag=false;
@@ -188,7 +190,7 @@ void fsensor_init(void)
 		fsensor_not_responding = true;
 	}
 #endif //PAT9125
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
      bIRsensorStateFlag=false;
      oFsensorPCB=(ClFsensorPCB)eeprom_read_byte((uint8_t*)EEPROM_FSENSOR_PCB);
      oFsensorActionNA=(ClFsensorActionNA)eeprom_read_byte((uint8_t*)EEPROM_FSENSOR_ACTION_NA);
@@ -198,8 +200,8 @@ void fsensor_init(void)
 	else
 		fsensor_disable(false);                 // (in this case) EEPROM update is not necessary
 	printf_P(PSTR("FSensor %S"), (fsensor_enabled?PSTR("ENABLED"):PSTR("DISABLED")));
-#if IR_SENSOR_ANALOG
-     printf_P(PSTR(" (sensor board revision: %S)\n"),(oFsensorPCB==ClFsensorPCB::_Rev03b)?PSTR("03b or newer"):PSTR("03 or older"));
+#ifdef IR_SENSOR_ANALOG
+     printf_P(PSTR(" (sensor board revision: %S)\n"),(oFsensorPCB==ClFsensorPCB::_Rev04) ? MSG_04_OR_NEWER : MSG_03_OR_OLDER);
 #else //IR_SENSOR_ANALOG
      printf_P(PSTR("\n"));
 #endif //IR_SENSOR_ANALOG
@@ -231,7 +233,7 @@ bool fsensor_enable(bool bUpdateEEPROM)
 		FSensorStateMenu = 1;
 	}
 #else // PAT9125
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
      if(!fsensor_IR_check())
           {
           bUpdateEEPROM=true;
@@ -244,7 +246,7 @@ bool fsensor_enable(bool bUpdateEEPROM)
      fsensor_enabled=true;
      fsensor_not_responding=false;
      FSensorStateMenu=1;
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
           }
 #endif //IR_SENSOR_ANALOG
      if(bUpdateEEPROM)
@@ -660,7 +662,7 @@ void fsensor_update(void)
         {
                if(digitalRead(IR_SENSOR_PIN))
                {                                  // IR_SENSOR_PIN ~ H
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
                     if(!bIRsensorStateFlag)
                     {
                          bIRsensorStateFlag=true;
@@ -689,7 +691,7 @@ void fsensor_update(void)
                               ADCSRB=nMUX2;
                               ENABLE_TEMPERATURE_INTERRUPT();
                               // end of sequence for ...
-                              if((oFsensorPCB==ClFsensorPCB::_Rev03b)&&((nADC*OVERSAMPLENR)>((int)IRsensor_Hopen_TRESHOLD)))
+                              if((oFsensorPCB==ClFsensorPCB::_Rev04)&&((nADC*OVERSAMPLENR)>((int)IRsensor_Hopen_TRESHOLD)))
                               {
                                    fsensor_disable();
                                    fsensor_not_responding = true;
@@ -703,7 +705,7 @@ void fsensor_update(void)
 #endif //IR_SENSOR_ANALOG
                                   fsensor_checkpoint_print();
                                   fsensor_enque_M600();
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
                               }
                          }
                     }
@@ -717,7 +719,7 @@ void fsensor_update(void)
 #endif //PAT9125
 }
 
-#if IR_SENSOR_ANALOG
+#ifdef IR_SENSOR_ANALOG
 bool fsensor_IR_check()
 {
 uint16_t volt_IR_int;
@@ -725,7 +727,7 @@ bool bCheckResult;
 
 volt_IR_int=current_voltage_raw_IR;
 bCheckResult=(volt_IR_int<((int)IRsensor_Lmax_TRESHOLD))||(volt_IR_int>((int)IRsensor_Hmin_TRESHOLD));
-bCheckResult=bCheckResult&&(!((oFsensorPCB==ClFsensorPCB::_Rev03b)&&(volt_IR_int>((int)IRsensor_Hopen_TRESHOLD))));
+bCheckResult=bCheckResult&&(!((oFsensorPCB==ClFsensorPCB::_Rev04)&&(volt_IR_int>((int)IRsensor_Hopen_TRESHOLD))));
 return(bCheckResult);
 }
 #endif //IR_SENSOR_ANALOG
