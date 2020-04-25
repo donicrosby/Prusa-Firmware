@@ -50,7 +50,7 @@ BASE="1_75mm_MK3S-EINSy10a-E3Dv6full.h"
 ## Bondtech Prusa Extruder
 VARIANT="MK3S-BMG-0.9.h"
 cp ${BASE} ${VARIANT}
-sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK3S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK3S"/' ${VARIANT}
+sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK3S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK3S"\'$'\n#define BONDTECH_MK3S/' ${VARIANT}
 # E Steps 
 sed -i '' -e 's/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,280}*/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,415}/' ${VARIANT}
 # Microsteps
@@ -65,7 +65,7 @@ sed -i '' -e 's/\/\/#define TMC2130_SERVICE_CODES_M910_M918*/#define TMC2130_SER
 
 VARIANT="MK3S-BMG-1.8.h"
 cp ${BASE} ${VARIANT}
-sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK3S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK3S"/' ${VARIANT}
+sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK3S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK3S"\'$'\n#define BONDTECH_MK3S/' ${VARIANT}
 # E Steps 
 sed -i '' -e 's/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,280}*/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,415}/' ${VARIANT}
 # Microsteps
@@ -112,7 +112,7 @@ BASE="1_75mm_MK25S-RAMBo13a-E3Dv6full.h"
 ## Bondtech Prusa Extruder
 VARIANT="MK25S-RAMBo13a-BMG-0.9.h"
 cp ${BASE} ${VARIANT}
-sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5S"/' ${VARIANT}
+sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5S"\'$'\n#define BONDTECH_MK25S/' ${VARIANT}
 # E Steps 
 sed -i '' -e 's/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,133}*/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,415}/' ${VARIANT}
 # Filament Load Distances (BMG gears are farther from the hotend)
@@ -124,7 +124,7 @@ sed -i '' -e 's/#define Z_MIN_POS 0.15/&\'$'\n#define Z_MAX_POS_XYZ_CALIBRATION_
 
 VARIANT="MK25S-RAMBo13a-BMG-1.8.h"
 cp ${BASE} ${VARIANT}
-sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5S"/' ${VARIANT}
+sed -i '' -e 's/#define CUSTOM_MENDEL_NAME "Prusa i3 MK2.5S"*/#define CUSTOM_MENDEL_NAME "Prusa BMG MK2.5S"\'$'\n#define BONDTECH_MK25S/' ${VARIANT}
 # E Steps 
 sed -i '' -e 's/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,133}*/#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200\/8,415}/' ${VARIANT}
 # Filament Load Distances (BMG gears are farther from the hotend)

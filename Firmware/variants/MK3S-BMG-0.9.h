@@ -20,6 +20,7 @@
 
 // Printer name
 #define CUSTOM_MENDEL_NAME "Prusa BMG MK3S"
+#define BONDTECH_MK3S
 
 // Electronics
 #define MOTHERBOARD BOARD_EINSY_1_0a
