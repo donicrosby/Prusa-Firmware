@@ -809,8 +809,11 @@ FORCE_INLINE void isr() {
         acceleration_time += timer;
 #ifdef LIN_ADVANCE
         if (current_block->use_advance_lead) {
-            if (step_events_completed.wide <= (unsigned long int)step_loops)
+            if (step_events_completed.wide <= (unsigned long int)step_loops) {
                 la_state = ADV_INIT | ADV_ACC_VARY;
+                if (e_extruding && current_adv_steps > target_adv_steps)
+                    target_adv_steps = current_adv_steps;
+            }
         }
 #endif
       }
@@ -832,6 +835,8 @@ FORCE_INLINE void isr() {
             if (step_events_completed.wide <= (unsigned long int)current_block->decelerate_after + step_loops) {
                 target_adv_steps = current_block->final_adv_steps;
                 la_state = ADV_INIT | ADV_ACC_VARY;
+                if (e_extruding && current_adv_steps < target_adv_steps)
+                    target_adv_steps = current_adv_steps;
             }
         }
 #endif
@@ -849,6 +854,8 @@ FORCE_INLINE void isr() {
               // acceleration or deceleration can be skipped or joined with the previous block.
               // If LA was not previously active, re-check the pressure level
               la_state = ADV_INIT;
+              if (e_extruding)
+                  target_adv_steps = current_adv_steps;
           }
 #endif
         }
@@ -883,13 +890,13 @@ FORCE_INLINE void isr() {
         advance_spread(main_Rate);
         if (LA_phase >= 0) {
             if (step_loops == e_step_loops)
-                LA_phase = (current_block->advance_rate > main_Rate);
+                LA_phase = (current_block->advance_rate < main_Rate);
             else {
                 // avoid overflow through division. warning: we need to _guarantee_ step_loops
                 // and e_step_loops are <= 4 due to fastdiv's limit
                 auto adv_rate_n = fastdiv(current_block->advance_rate, step_loops);
                 auto main_rate_n = fastdiv(main_Rate, e_step_loops);
-                LA_phase = (adv_rate_n > main_rate_n);
+                LA_phase = (adv_rate_n < main_rate_n);
             }
         }
     }
@@ -908,6 +915,13 @@ FORCE_INLINE void isr() {
 
       current_block = NULL;
       plan_discard_current_block();
+
+#ifdef LIN_ADVANCE
+      // This is the last time the main isr is called for this block, meaning
+      // we should now always flush ALL accumulated e_steps during the advance_isr
+      // irregardless of the decompression phase and main stepping frequency
+      LA_phase = -1;
+#endif
     }
 #if !defined(LIN_ADVANCE) && defined(FILAMENT_SENSOR)
 	else if ((abs(fsensor_counter) >= fsensor_chunk_len))
