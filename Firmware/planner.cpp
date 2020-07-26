@@ -234,8 +234,6 @@ void calculate_trapezoid_for_block(block_t *block, float entry_speed, float exit
   }
 #endif
 
-  float max_speed;
-
   // Is the Plateau of Nominal Rate smaller than nothing? That means no cruising, and we will
   // have to use intersection_distance() to calculate when to abort acceleration and start braking
   // in order to reach the final_rate exactly at the end of this block.
@@ -1095,7 +1093,7 @@ Having the real displacement of the head, we can calculate the total movement le
      * |delta_mm[Z_AXIS]| < 0.5 : Z is only moved for leveling (_not_ for priming)
      */
     block->use_advance_lead = extruder_advance_K > 0
-                              && delta_mm[E_AXIS] > 0
+                              && delta_mm[E_AXIS] >= 0
                               && abs(delta_mm[Z_AXIS]) < 0.5;
     if (block->use_advance_lead) {
 #ifdef LA_FLOWADJ
