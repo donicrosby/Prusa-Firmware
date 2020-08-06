@@ -266,7 +266,7 @@
 //new settings is possible for vsense = 1, running current value > 31 set vsense to zero and shift both currents by 1 bit right (Z axis only)
 #define TMC2130_CURRENTS_H {16, 20, 35, 30}  // default holding currents for all axes
 #define TMC2130_CURRENTS_R {16, 20, 35, 30}  // default running currents for all axes
-#define TMC2130_CURRENTS_R_HOME {12, 15, 20, 18}  // homing running currents for all axes
+#define TMC2130_CURRENTS_R_HOME {8, 10, 20, 18}  // homing running currents for all axes
 // #define TMC2130_UNLOAD_CURRENT_R 12			 // lower current for M600 to protect filament sensor - Unused
 
 #define TMC2130_STEALTH_Z
@@ -297,6 +297,7 @@
 #endif
 #define DETECT_SUPERPINDA
 #define PINDA_MINTEMP BED_MINTEMP
+#define AMBIENT_MINTEMP -30
 
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -307,6 +308,7 @@
 #define HEATER_1_MAXTEMP 305
 #define HEATER_2_MAXTEMP 305
 #define BED_MAXTEMP 125
+#define AMBIENT_MAXTEMP 100
 
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
 // Define PID constants for extruder with PT100
