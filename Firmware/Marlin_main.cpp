@@ -1054,11 +1054,6 @@ void setup()
 		selectedSerialPort = 1;
 #endif //HAS_SECOND_SERIAL_PORT
 		MYSERIAL.begin(BAUDRATE);
-#ifdef TMC2130
-		//increased extruder current (PFW363)
-		tmc2130_current_h[E_AXIS] = 36;
-		tmc2130_current_r[E_AXIS] = 36;
-#endif //TMC2130
 #ifdef FILAMENT_SENSOR
 		//disabled filament autoload (PFW360)
 		fsensor_autoload_set(false);
@@ -1067,6 +1062,14 @@ void setup()
           if(!(eeprom_read_byte((uint8_t*)EEPROM_FAN_CHECK_ENABLED)))
                eeprom_update_byte((unsigned char *)EEPROM_FAN_CHECK_ENABLED,true);
 	}
+
+#ifdef TMC2130
+    if( FarmOrUserECool() ){
+		//increased extruder current (PFW363)
+		tmc2130_current_h[E_AXIS] = TMC2130_CURRENTS_FARM;
+		tmc2130_current_r[E_AXIS] = TMC2130_CURRENTS_FARM;
+    }
+#endif //TMC2130
 
     //saved EEPROM SN is not valid. Try to retrieve it.
     //SN is valid only if it is NULL terminated. Any other character means either uninitialized or corrupted
@@ -1337,13 +1340,12 @@ void setup()
 #endif //TMC2130_VARIABLE_RESOLUTION
 
 #endif //TMC2130
-
 	st_init();    // Initialize stepper, this enables interrupts!
   
 #ifdef TMC2130
 	tmc2130_mode = silentMode?TMC2130_MODE_SILENT:TMC2130_MODE_NORMAL;
 	update_mode_profile();
-	tmc2130_init();
+	tmc2130_init(TMCInitParams(false, FarmOrUserECool() ));
 #endif //TMC2130
 #ifdef PSU_Delta
      init_force_z();                              // ! important for correct Z-axis initialization
@@ -2560,7 +2562,7 @@ void force_high_power_mode(bool start_high_power_section) {
 		cli();
 		tmc2130_mode = (start_high_power_section == true) ? TMC2130_MODE_NORMAL : TMC2130_MODE_SILENT;
 		update_mode_profile();
-		tmc2130_init();
+		tmc2130_init(TMCInitParams(FarmOrUserECool()));
     // We may have missed a stepper timer interrupt due to the time spent in the tmc2130_init() routine.
     // Be safe than sorry, reset the stepper timer before re-enabling interrupts.
     st_reset_timer();
@@ -2664,15 +2666,14 @@ static void gcode_G28(bool home_x_axis, long home_x_value, bool home_y_axis, lon
 static void gcode_G28(bool home_x_axis, long home_x_value, bool home_y_axis, long home_y_value, bool home_z_axis, long home_z_value, bool without_mbl)
 #endif //TMC2130
 {
+	// Flag for the display update routine and to disable the print cancelation during homing.
 	st_synchronize();
+	homing_flag = true;
 
 #if 0
 	SERIAL_ECHOPGM("G28, initial ");  print_world_coordinates();
 	SERIAL_ECHOPGM("G28, initial ");  print_physical_coordinates();
 #endif
-
-	// Flag for the display update routine and to disable the print cancelation during homing.
-	homing_flag = true;
 
 	// Which axes should be homed?
 	bool home_x = home_x_axis;
@@ -2916,24 +2917,21 @@ static void gcode_G28(bool home_x_axis, long home_x_value, bool home_y_axis, lon
 
 #if (defined(MESH_BED_LEVELING) && !defined(MK1BP))
 	if (home_x_axis || home_y_axis || without_mbl || home_z_axis)
-		{
+    {
       if (! home_z && mbl_was_active) {
         // Re-enable the mesh bed leveling if only the X and Y axes were re-homed.
         mbl.active = true;
         // and re-adjust the current logical Z axis with the bed leveling offset applicable at the current XY position.
         current_position[Z_AXIS] -= mbl.get_z(st_get_position_mm(X_AXIS), st_get_position_mm(Y_AXIS));
       }
-		}
-	else
-		{
-			st_synchronize();
-			homing_flag = false;
-	  }
+    }
 #endif
 
 	  if (farm_mode) { prusa_statistics(20); };
 
+      st_synchronize();
 	  homing_flag = false;
+
 #if 0
       SERIAL_ECHOPGM("G28, final ");  print_world_coordinates();
       SERIAL_ECHOPGM("G28, final ");  print_physical_coordinates();
@@ -2954,6 +2952,10 @@ static void gcode_G28(bool home_x_axis, bool home_y_axis, bool home_z_axis)
 // G80 - Automatic mesh bed leveling
 static void gcode_G80()
 {
+    st_synchronize();
+    if (waiting_inside_plan_buffer_line_print_aborted)
+        return;
+
     mesh_bed_leveling_flag = true;
 #ifndef PINDA_THERMISTOR
     static bool run = false; // thermistor-less PINDA temperature compensation is running
@@ -3354,9 +3356,11 @@ static void gcode_G80()
     lcd_setstatuspgm(_T(WELCOME_MSG));
     custom_message_type = custom_message_type_old;
     custom_message_state = custom_message_state_old;
-    mesh_bed_leveling_flag = false;
     mesh_bed_run_from_menu = false;
     lcd_update(2);
+
+    st_synchronize();
+    mesh_bed_leveling_flag = false;
 }
 
 
@@ -3624,12 +3628,12 @@ static T gcode_M600_filament_change_z_shift()
 #ifdef FILAMENTCHANGE_ZADD
 	static_assert(Z_MAX_POS < (255 - FILAMENTCHANGE_ZADD), "Z-range too high, change the T type from uint8_t to uint16_t");
 	// avoid floating point arithmetics when not necessary - results in shorter code
+	T z_shift = T(FILAMENTCHANGE_ZADD); // always move above printout
 	T ztmp = T( current_position[Z_AXIS] );
-	T z_shift = 0;
-	if(ztmp < T(25)){
-		z_shift = T(25) - ztmp; // make sure to be at least 25mm above the heat bed
-	} 
-	return z_shift + T(FILAMENTCHANGE_ZADD); // always move above printout
+	if((ztmp + z_shift) < T(MIN_Z_FOR_SWAP)){
+		z_shift = T(MIN_Z_FOR_SWAP) - ztmp; // make sure to be at least 25mm above the heat bed
+	}
+	return z_shift;
 #else
 	return T(0);
 #endif
@@ -3678,7 +3682,7 @@ static void gcode_M600(bool automatic, float x_position, float y_position, float
 
     // Unload filament
     if (mmu_enabled) extr_unload();	//unload just current filament for multimaterial printers (used also in M702)
-    else unload_filament(); //unload filament for single material (used also in M702)
+    else unload_filament(true); //unload filament for single material (used also in M702)
     //finish moves
     st_synchronize();
 
@@ -3965,6 +3969,8 @@ static void extended_capabilities_report()
 #endif //FANCHECK and TACH_0 or TACH_1
     // AUTOREPORT_POSITION (M114)
     cap_line(PSTR("AUTOREPORT_POSITION"), ENABLED(AUTO_REPORT));
+    // EXTENDED_M20 (support for L and T parameters)
+    cap_line(PSTR("EXTENDED_M20"), 1);
     //@todo Update RepRap cap
 }
 #endif //EXTENDED_CAPABILITIES_REPORT
@@ -5149,8 +5155,9 @@ if(eSoundMode!=e_SOUND_MODE_SILENT)
     */
     case 30: 
         {
-            homing_flag = true;
             st_synchronize();
+            homing_flag = true;
+
             // TODO: make sure the bed_level_rotation_matrix is identity or the planner will get set incorectly
             int l_feedmultiply = setup_for_endstop_move();
 
@@ -5253,7 +5260,9 @@ if(eSoundMode!=e_SOUND_MODE_SILENT)
             }
         }
 
+        st_synchronize();
         homing_flag = true; // keep homing on to avoid babystepping while the LCD is enabled
+
         lcd_update_enable(true);
         KEEPALIVE_STATE(NOT_BUSY); //no need to print busy messages as we print current temperatures periodicaly
         SERIAL_ECHOLNPGM("PINDA probe calibration start");
@@ -5738,16 +5747,17 @@ if(eSoundMode!=e_SOUND_MODE_SILENT)
 	### M20 - SD Card file list <a href="https://reprap.org/wiki/G-code#M20:_List_SD_card">M20: List SD card</a>
     #### Usage
     
-        M20 [ L ]
+        M20 [ L | T ]
     #### Parameters
-    - `L` - Reports ling filenames instead of just short filenames. Requires host software parsing.
+    - `T` - Report timestamps as well. The value is one uint32_t encoded as hex. Requires host software parsing (Cap:EXTENDED_M20).
+    - `L` - Reports long filenames instead of just short filenames. Requires host software parsing (Cap:EXTENDED_M20).
     */
     case 20:
       KEEPALIVE_STATE(NOT_BUSY); // do not send busy messages during listing. Inhibits the output of manage_heater()
       SERIAL_PROTOCOLLNRPGM(_N("Begin file list"));////MSG_BEGIN_FILE_LIST
-      card.ls(code_seen('L'));
+      card.ls(CardReader::ls_param(code_seen('L'), code_seen('T')));
       SERIAL_PROTOCOLLNRPGM(_N("End file list"));////MSG_END_FILE_LIST
-      break;
+    break;
 
     /*!
 	### M21 - Init SD card <a href="https://reprap.org/wiki/G-code#M21:_Initialize_SD_card">M21: Initialize SD card</a>
@@ -6486,6 +6496,7 @@ Sigma_Exit:
       gcode_M105(extruder);
       
       cmdqueue_pop_front(); //prevent an ok after the command since this command uses an ok at the beginning.
+      cmdbuffer_front_already_processed = true;
       
       break;
     }
@@ -8421,6 +8432,7 @@ Sigma_Exit:
     /*!
 	### M907 - Set digital trimpot motor current in mA using axis codes <a href="https://reprap.org/wiki/G-code#M907:_Set_digital_trimpot_motor">M907: Set digital trimpot motor</a>
 	Set digital trimpot motor current using axis codes (X, Y, Z, E, B, S).
+    M907 has no effect when the experimental Extruder motor current scaling mode is active (that applies to farm printing as well)
 	#### Usage
     
         M907 [ X | Y | Z | E | B | S ]
@@ -8437,16 +8449,20 @@ Sigma_Exit:
     {
 #ifdef TMC2130
         // See tmc2130_cur2val() for translation to 0 .. 63 range
-        for (int i = 0; i < NUM_AXIS; i++)
-			if(code_seen(axis_codes[i]))
-			{
-				long cur_mA = code_value_long();
-				uint8_t val = tmc2130_cur2val(cur_mA);
-				tmc2130_set_current_h(i, val);
-				tmc2130_set_current_r(i, val);
-				//if (i == E_AXIS) printf_P(PSTR("E-axis current=%ldmA\n"), cur_mA);
-			}
-
+        for (uint_least8_t i = 0; i < NUM_AXIS; i++){
+            if(code_seen(axis_codes[i])){
+                if( i == E_AXIS && FarmOrUserECool() ){
+                    SERIAL_ECHORPGM(eMotorCurrentScalingEnabled);
+                    SERIAL_ECHOLNPGM(", M907 E ignored");
+                    continue;
+                }
+                long cur_mA = code_value_long();
+                uint8_t val = tmc2130_cur2val(cur_mA);
+                tmc2130_set_current_h(i, val);
+                tmc2130_set_current_r(i, val);
+                //if (i == E_AXIS) printf_P(PSTR("E-axis current=%ldmA\n"), cur_mA);
+            }
+        }
 #else //TMC2130
       #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
         for(int i=0;i<NUM_AXIS;i++) if(code_seen(axis_codes[i])) st_current_set(i,code_value());
@@ -8671,7 +8687,7 @@ Sigma_Exit:
     case 350: 
     {
 	#ifdef TMC2130
-		for (int i=0; i<NUM_AXIS; i++) 
+		for (uint_least8_t i=0; i<NUM_AXIS; i++) 
 		{
 			if(code_seen(axis_codes[i]))
 			{
@@ -11957,7 +11973,7 @@ void disable_force_z()
 #ifdef TMC2130
     tmc2130_mode=TMC2130_MODE_SILENT;
     update_mode_profile();
-    tmc2130_init(true);
+    tmc2130_init(TMCInitParams(true, FarmOrUserECool()));
 #endif // TMC2130
 }
 
@@ -11971,7 +11987,7 @@ bEnableForce_z=true;
 #ifdef TMC2130
 tmc2130_mode=eeprom_read_byte((uint8_t*)EEPROM_SILENT)?TMC2130_MODE_SILENT:TMC2130_MODE_NORMAL;
 update_mode_profile();
-tmc2130_init(true);
+tmc2130_init(TMCInitParams(true, FarmOrUserECool()));
 #endif // TMC2130
 
 WRITE(Z_ENABLE_PIN,Z_ENABLE_ON);                  // slightly redundant ;-p
