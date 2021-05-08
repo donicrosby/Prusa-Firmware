@@ -371,12 +371,6 @@ void repeatcommand_front()
     cmdbuffer_front_already_processed = true;
 } 
 
-bool is_buffer_empty()
-{
-    if (buflen == 0) return true;
-    else return false;
-}
-
 void proc_commands() {
 	if (buflen)
 	{
@@ -606,7 +600,7 @@ void get_command()
       }
       // The new command buffer could be updated non-atomically, because it is not yet considered
       // to be inside the active queue.
-      sd_count.value = (card.get_sdpos()+1) - sdpos_atomic;
+      sd_count.value = card.get_sdpos() - sdpos_atomic;
       cmdbuffer[bufindw] = CMDBUFFER_CURRENT_TYPE_SDCARD;
       cmdbuffer[bufindw+1] = sd_count.lohi.lo;
       cmdbuffer[bufindw+2] = sd_count.lohi.hi;
@@ -631,7 +625,7 @@ void get_command()
       // or a 115200 Bd serial line receive interrupt, which will not trigger faster than 12kHz.
       ++ buflen;
       bufindw += len;
-      sdpos_atomic = card.get_sdpos()+1;
+      sdpos_atomic = card.get_sdpos();
       if (bufindw == sizeof(cmdbuffer))
           bufindw = 0;
       sei();
