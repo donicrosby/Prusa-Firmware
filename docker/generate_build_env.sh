@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source ./PF-build.sh
+
+check_create_build_folders
+
+download_prepare_arduinoIDE
+portable_ArduinoIDE
+change_ArduinoIDEpreferances
+download_prepare_Prusa_build_files
+check_ArduinoIDE_User_interaction

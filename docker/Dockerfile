@@ -20,11 +20,14 @@ COPY Firmware/ ./Firmware/
 COPY Catch2/ ./Catch2/
 COPY lang/ ./lang/
 COPY tools/ ./tools/
-COPY bmg-build.sh PF-build.sh MK404-build.sh ./
+COPY build-bmg.sh PF-build.sh MK404-build.sh docker/generate_build_env.sh ./
 
-ENV PRUSA_VARIANTS_DIR ${PRUSA_FIRMWARE_SOURCE}/Firmware/variants
-ENV DUMMY_HEADER ${PRUSA_VARIANTS_DIR}/shouldnt-exist.h
-RUN touch ${DUMMY_HEADER} && \
-    yes '1' | ./PF-build.sh -v "$( basename ${DUMMY_HEADER} )" || true && \
-    ls -la .. && \
-    rm -rf ${DUMMY_HEADER} ../PF-build-hex ../Prusa-Firmware-build
+RUN ./generate_build_env.sh && \
+    rm -rf ../PF-build-hex ../Prusa-Firmware-build
+# ENV PRUSA_VARIANTS_DIR ${PRUSA_FIRMWARE_SOURCE}/Firmware/variants
+# ENV DUMMY_HEADER ${PRUSA_VARIANTS_DIR}/shouldnt-exist.h
+# RUN touch ${DUMMY_HEADER} && \
+#     # This should fail, we're using the PF-Build and the dummy file
+#     # to generate the environment
+#     yes '1' | ./PF-build.sh -v "$( basename ${DUMMY_HEADER} )" || true && \
+#     rm -rf ${DUMMY_HEADER} ../PF-build-hex ../Prusa-Firmware-build
