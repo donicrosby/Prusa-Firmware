@@ -325,6 +325,11 @@ msgstr "Verificare senzori"
 msgid "Checks"
 msgstr "Verificari"
 
+#. MSG_TM_ACK_ERROR c=18
+#: ../../Firmware/messages.cpp:172 ../../Firmware/ultralcd.cpp:5490
+msgid "Clear TM error"
+msgstr "Ștergeți eroare TM"
+
 #. MSG_NOT_COLOR c=19
 #: ../../Firmware/ultralcd.cpp:2237
 msgid "Color not correct"
@@ -625,6 +630,8 @@ msgid ""
 "For a Nozzle change please read\n"
 "prusa.io/nozzle-mk3s"
 msgstr ""
+"Pentru schimbare varf va rog cititi\n"
+"prusa.io/nozzle-mk3s"
 
 #. MSG_SELFTEST_PART_FAN c=20
 #: ../../Firmware/messages.cpp:83 ../../Firmware/ultralcd.cpp:7026
@@ -633,9 +640,9 @@ msgid "Front print fan?"
 msgstr "Vent. print?"
 
 #. MSG_BED_CORRECTION_FRONT c=14
-#: ../../Firmware/ultralcd.cpp:2773
-msgid "Front side[μm]"
-msgstr "Fata [μm]"
+#: ../../Firmware/ultralcd.cpp:2745
+msgid "Front side[µm]"
+msgstr "Fata [µm]"
 
 #. MSG_SELFTEST_FANS c=20
 #: ../../Firmware/ultralcd.cpp:7050
@@ -750,7 +757,7 @@ msgstr "Put. max"
 #. MSG_NOZZLE_CNG_CHANGED c=20 r=6
 #: ../../Firmware/messages.cpp:174 ../../Firmware/ultralcd.cpp:1036
 msgid "Hotend at 280C! Nozzle changed and tightened to specs?"
-msgstr ""
+msgstr "Hotend la 280C! Varf schimbat si strans conf. specificatiei?"
 
 #. MSG_HOTEND_FAN_SPEED c=15
 #: ../../Firmware/messages.cpp:35 ../../Firmware/ultralcd.cpp:1145
@@ -759,9 +766,9 @@ msgid "Hotend fan:"
 msgstr "Vent. hotend:"
 
 #. MSG_WIZARD_XYZ_CAL c=20 r=8
-#: ../../Firmware/ultralcd.cpp:4094
-msgid "I will run xyz calibration now. It will take approx. 12 mins."
-msgstr "Voi rula calibrarea XYZ acum. Va dura aprox. 12 minute."
+#: ../../Firmware/ultralcd.cpp:4030
+msgid "I will run xyz calibration now. It will take up to 24 mins."
+msgstr "Voi rula calibrarea XYZ acum. Va dura până la 24 de min."
 
 #. MSG_WIZARD_Z_CAL c=20 r=8
 #: ../../Firmware/ultralcd.cpp:4102
@@ -846,9 +853,9 @@ msgid "Left hotend fan?"
 msgstr "Vent. hotend?"
 
 #. MSG_BED_CORRECTION_LEFT c=14
-#: ../../Firmware/ultralcd.cpp:2771
-msgid "Left side [μm]"
-msgstr "Stanga [μm]"
+#: ../../Firmware/ultralcd.cpp:2743
+msgid "Left side [µm]"
+msgstr "Stanga [µm]"
 
 #. MSG_BL_HIGH c=12
 #: ../../Firmware/messages.cpp:152 ../../Firmware/ultralcd.cpp:5884
@@ -1146,7 +1153,7 @@ msgstr "Varf"
 #. MSG_NOZZLE_CNG_MENU c=18
 #: ../../Firmware/messages.cpp:173 ../../Firmware/ultralcd.cpp:4580
 msgid "Nozzle change"
-msgstr ""
+msgstr "Schimbare varf"
 
 #. MSG_NOZZLE_DIAMETER c=10
 #: ../../Firmware/messages.cpp:133 ../../Firmware/ultralcd.cpp:4565
@@ -1488,9 +1495,9 @@ msgid "RPi port"
 msgstr "Port RPi"
 
 #. MSG_BED_CORRECTION_REAR c=14
-#: ../../Firmware/ultralcd.cpp:2774
-msgid "Rear side [μm]"
-msgstr "Spate [μm]"
+#: ../../Firmware/ultralcd.cpp:2746
+msgid "Rear side [µm]"
+msgstr "Spate [µm]"
 
 #. MSG_RECOVERING_PRINT c=20
 #: ../../Firmware/Marlin_main.cpp:10954
@@ -1536,9 +1543,9 @@ msgid "Right"
 msgstr "Dreapta"
 
 #. MSG_BED_CORRECTION_RIGHT c=14
-#: ../../Firmware/ultralcd.cpp:2772
-msgid "Right side[μm]"
-msgstr "Dreapta [μm]"
+#: ../../Firmware/ultralcd.cpp:2744
+msgid "Right side[µm]"
+msgstr "Dreapta [µm]"
 
 #. MSG_WIZARD_RERUN c=20 r=7
 #: ../../Firmware/ultralcd.cpp:3903

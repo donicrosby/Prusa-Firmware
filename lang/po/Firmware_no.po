@@ -324,6 +324,11 @@ msgstr "Sjekker sensorer"
 msgid "Checks"
 msgstr "G-code sjekk"
 
+#. MSG_TM_ACK_ERROR c=18
+#: ../../Firmware/messages.cpp:172 ../../Firmware/ultralcd.cpp:5490
+msgid "Clear TM error"
+msgstr "Fjern TM-feil"
+
 #. MSG_NOT_COLOR c=19
 #: ../../Firmware/ultralcd.cpp:2237
 msgid "Color not correct"
@@ -622,6 +627,8 @@ msgid ""
 "For a Nozzle change please read\n"
 "prusa.io/nozzle-mk3s"
 msgstr ""
+"For å bytte dyse, vennligst les\n"
+"prusa.io/nozzle-mk3s"
 
 #. MSG_SELFTEST_PART_FAN c=20
 #: ../../Firmware/messages.cpp:83 ../../Firmware/ultralcd.cpp:7026
@@ -630,9 +637,9 @@ msgid "Front print fan?"
 msgstr "Fremre printvifte?"
 
 #. MSG_BED_CORRECTION_FRONT c=14
-#: ../../Firmware/ultralcd.cpp:2773
-msgid "Front side[μm]"
-msgstr "Fremsiden [μm]"
+#: ../../Firmware/ultralcd.cpp:2745
+msgid "Front side[µm]"
+msgstr "Fremsiden [µm]"
 
 #. MSG_SELFTEST_FANS c=20
 #: ../../Firmware/ultralcd.cpp:7050
@@ -744,7 +751,7 @@ msgstr "Høy styrke"
 #. MSG_NOZZLE_CNG_CHANGED c=20 r=6
 #: ../../Firmware/messages.cpp:174 ../../Firmware/ultralcd.cpp:1036
 msgid "Hotend at 280C! Nozzle changed and tightened to specs?"
-msgstr ""
+msgstr "Hotend på 280C! Dyse byttet og strammet til spesifikasjonene?"
 
 #. MSG_HOTEND_FAN_SPEED c=15
 #: ../../Firmware/messages.cpp:35 ../../Firmware/ultralcd.cpp:1145
@@ -753,9 +760,9 @@ msgid "Hotend fan:"
 msgstr "Hotend-vifte:"
 
 #. MSG_WIZARD_XYZ_CAL c=20 r=8
-#: ../../Firmware/ultralcd.cpp:4094
-msgid "I will run xyz calibration now. It will take approx. 12 mins."
-msgstr "Nå skal jeg kjøre kalibreringen. Det tar ca. 12 min."
+#: ../../Firmware/ultralcd.cpp:4030
+msgid "I will run xyz calibration now. It will take up to 24 mins."
+msgstr "Nå skal jeg kjøre kalibreringen. Det kan ta opptil 24 min."
 
 #. MSG_WIZARD_Z_CAL c=20 r=8
 #: ../../Firmware/ultralcd.cpp:4102
@@ -840,9 +847,9 @@ msgid "Left hotend fan?"
 msgstr "Venst. hotendvifte?"
 
 #. MSG_BED_CORRECTION_LEFT c=14
-#: ../../Firmware/ultralcd.cpp:2771
-msgid "Left side [μm]"
-msgstr "Vens. side[μm]"
+#: ../../Firmware/ultralcd.cpp:2743
+msgid "Left side [µm]"
+msgstr "Vens. side[µm]"
 
 #. MSG_BL_HIGH c=12
 #: ../../Firmware/messages.cpp:152 ../../Firmware/ultralcd.cpp:5884
@@ -1140,7 +1147,7 @@ msgstr "Dyse"
 #. MSG_NOZZLE_CNG_MENU c=18
 #: ../../Firmware/messages.cpp:173 ../../Firmware/ultralcd.cpp:4580
 msgid "Nozzle change"
-msgstr ""
+msgstr "Dysebytte"
 
 #. MSG_NOZZLE_DIAMETER c=10
 #: ../../Firmware/messages.cpp:133 ../../Firmware/ultralcd.cpp:4565
@@ -1479,9 +1486,9 @@ msgid "RPi port"
 msgstr "RPi port"
 
 #. MSG_BED_CORRECTION_REAR c=14
-#: ../../Firmware/ultralcd.cpp:2774
-msgid "Rear side [μm]"
-msgstr "Baksiden [μm]"
+#: ../../Firmware/ultralcd.cpp:2746
+msgid "Rear side [µm]"
+msgstr "Baksiden [µm]"
 
 #. MSG_RECOVERING_PRINT c=20
 #: ../../Firmware/Marlin_main.cpp:10954
@@ -1526,9 +1533,9 @@ msgid "Right"
 msgstr "Høyre"
 
 #. MSG_BED_CORRECTION_RIGHT c=14
-#: ../../Firmware/ultralcd.cpp:2772
-msgid "Right side[μm]"
-msgstr "Høyre side[μm]"
+#: ../../Firmware/ultralcd.cpp:2744
+msgid "Right side[µm]"
+msgstr "Høyre side[µm]"
 
 #. MSG_WIZARD_RERUN c=20 r=7
 #: ../../Firmware/ultralcd.cpp:3903

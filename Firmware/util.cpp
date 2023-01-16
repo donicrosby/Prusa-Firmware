@@ -10,7 +10,7 @@
 
 // Allocate the version string in the program memory. Otherwise the string lands either on the stack or in the global RAM.
 static const char FW_VERSION_STR[] PROGMEM = FW_VERSION;
-static const uint16_t FW_VERSION_NR[4] PROGMEM = {
+const uint16_t FW_VERSION_NR[4] PROGMEM = {
     FW_MAJOR,
     FW_MINOR,
     FW_REVISION,
@@ -181,32 +181,23 @@ inline int8_t is_provided_version_newer(const char *version_string)
     return 0;
 }
 
-bool force_selftest_if_fw_version()
+bool eeprom_fw_version_older_than_p(const uint16_t (&ver_req)[4])
 {
-	//if fw version used before flashing new firmware (fw version currently stored in eeprom) is lower then 3.1.2-RC2, function returns true to force selftest
+    uint16_t ver_eeprom[4];
+    ver_eeprom[0] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_MAJOR);
+    ver_eeprom[1] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_MINOR);
+    ver_eeprom[2] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_REVISION);
+    ver_eeprom[3] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_FLAVOR);
 
-	uint16_t ver_eeprom[4];
-	uint16_t ver_with_calibration[4] = {3, 1, 2, 4}; //hardcoded 3.1.2-RC2 version
-	bool force_selftest = false;
+    for (uint8_t i = 0; i < 4; ++i) {
+        uint16_t v = pgm_read_word(&ver_req[i]);
+        if (v > ver_eeprom[i])
+            return true;
+        else if (v < ver_eeprom[i])
+            break;
+    }
 
-	ver_eeprom[0] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_MAJOR);
-	ver_eeprom[1] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_MINOR);
-	ver_eeprom[2] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_REVISION);
-	ver_eeprom[3] = eeprom_read_word((uint16_t*)EEPROM_FIRMWARE_VERSION_FLAVOR);
-
-	for (uint8_t i = 0; i < 4; ++i) {
-		if (ver_with_calibration[i] > ver_eeprom[i]) {
-			force_selftest = true;
-			break;
-		}
-		else if (ver_with_calibration[i] < ver_eeprom[i])
-			break;
-	}
-
-	//force selftest also in case that version used before flashing new firmware was 3.2.0-RC1
-	if ((ver_eeprom[0] == 3) && (ver_eeprom[1] == 2) && (ver_eeprom[2] == 0) && (ver_eeprom[3] == 3)) force_selftest = true;
-	
-	return force_selftest;
+    return false;
 }
 
 bool show_upgrade_dialog_if_version_newer(const char *version_string)
@@ -378,39 +369,39 @@ return((uint8_t)ClCompareValue::_Equal);
 }
 
 void fw_version_check(const char *pVersion) {
-    uint16_t aVersion[4];
-    uint8_t nCompareValueResult;
-
     if (oCheckVersion == ClCheckVersion::_None)
         return;
+
+    uint16_t aVersion[4];
+    uint8_t nCompareValueResult;
     parse_version(pVersion, aVersion);
     nCompareValueResult = mCompareValue(aVersion[0], eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MAJOR)) << 6;
     nCompareValueResult += mCompareValue(aVersion[1], eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MINOR)) << 4;
     nCompareValueResult += mCompareValue(aVersion[2], eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_REVISION)) << 2;
     nCompareValueResult += mCompareValue(aVersion[3], eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_FLAVOR));
-    if (nCompareValueResult == COMPARE_VALUE_EQUAL)
+    if (nCompareValueResult <= COMPARE_VALUE_EQUAL)
         return;
-    if ((nCompareValueResult < COMPARE_VALUE_EQUAL) && oCheckVersion == ClCheckVersion::_Warn)
-        return;
-    // SERIAL_ECHO_START;
-    // SERIAL_ECHOLNPGM("Printer FW version differs from the G-code ...");
-    // SERIAL_ECHOPGM("actual  : ");
-//    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MAJOR));
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MINOR));
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_REVISION));
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_FLAVOR));
-//    SERIAL_ECHOPGM("\nexpected: ");
-//    SERIAL_ECHO(aVersion[0]);
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHO(aVersion[1]);
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHO(aVersion[2]);
-//    SERIAL_ECHO('.');
-//    SERIAL_ECHOLN(aVersion[3]);
 
+/*
+    SERIAL_ECHO_START;
+    SERIAL_ECHOLNPGM("Printer FW version differs from the G-code ...");
+    SERIAL_ECHOPGM("actual  : ");
+    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MAJOR));
+    SERIAL_ECHO('.');
+    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_MINOR));
+    SERIAL_ECHO('.');
+    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_REVISION));
+    SERIAL_ECHO('.');
+    SERIAL_ECHO(eeprom_read_word((uint16_t *)EEPROM_FIRMWARE_VERSION_FLAVOR));
+    SERIAL_ECHOPGM("\nexpected: ");
+    SERIAL_ECHO(aVersion[0]);
+    SERIAL_ECHO('.');
+    SERIAL_ECHO(aVersion[1]);
+    SERIAL_ECHO('.');
+    SERIAL_ECHO(aVersion[2]);
+    SERIAL_ECHO('.');
+    SERIAL_ECHOLN(aVersion[3]);
+*/
     switch (oCheckVersion) {
     case ClCheckVersion::_Warn:
         //          lcd_show_fullscreen_message_and_wait_P(_i("Printer FW version differs from the G-code. Continue?"));
@@ -430,37 +421,35 @@ void fw_version_check(const char *pVersion) {
     }
 }
 
-void gcode_level_check(uint16_t nGcodeLevel)
-{
-if(oCheckGcode==ClCheckGcode::_None)
-     return;
-if(nGcodeLevel==(uint16_t)GCODE_LEVEL)
-     return;
-if((nGcodeLevel<(uint16_t)GCODE_LEVEL)&&(oCheckGcode==ClCheckGcode::_Warn))
-     return;
-//SERIAL_ECHO_START;
-//SERIAL_ECHOLNPGM("Printer G-code level differs from the G-code ...");
-//SERIAL_ECHOPGM("actual  : ");
-//SERIAL_ECHOLN(GCODE_LEVEL);
-//SERIAL_ECHOPGM("expected: ");
-//SERIAL_ECHOLN(nGcodeLevel);
-switch(oCheckGcode)
-     {
-     case ClCheckGcode::_Warn:
-//          lcd_show_fullscreen_message_and_wait_P(_i("Printer G-code level differs from the G-code. Continue?"));
-lcd_display_message_fullscreen_P(_i("G-code sliced for a different level. Continue?"));////MSG_GCODE_DIFF_CONTINUE c=20 r=4
-lcd_wait_for_click_delay(MSG_PRINT_CHECKING_FAILED_TIMEOUT);
-//???custom_message_type=CUSTOM_MSG_TYPE_STATUS; // display / status-line recovery
-lcd_update_enable(true);           // display / status-line recovery
-          break;
-     case ClCheckGcode::_Strict:
-          lcd_show_fullscreen_message_and_wait_P(_i("G-code sliced for a different level. Please re-slice the model again. Print cancelled."));////MSG_GCODE_DIFF_CANCELLED c=20 r=7
-          lcd_print_stop();
-          break;
-     case ClCheckGcode::_None:
-     case ClCheckGcode::_Undef:
-          break;
-     }
+void gcode_level_check(uint16_t nGcodeLevel) {
+    if (oCheckGcode == ClCheckGcode::_None)
+        return;
+    if (nGcodeLevel <= (uint16_t)GCODE_LEVEL)
+        return;
+
+    // SERIAL_ECHO_START;
+    // SERIAL_ECHOLNPGM("Printer G-code level differs from the G-code ...");
+    // SERIAL_ECHOPGM("actual  : ");
+    // SERIAL_ECHOLN(GCODE_LEVEL);
+    // SERIAL_ECHOPGM("expected: ");
+    // SERIAL_ECHOLN(nGcodeLevel);
+    switch (oCheckGcode) {
+    case ClCheckGcode::_Warn:
+        //          lcd_show_fullscreen_message_and_wait_P(_i("Printer G-code level differs from the G-code. Continue?"));
+        lcd_display_message_fullscreen_P(_i("G-code sliced for a different level. Continue?")); ////MSG_GCODE_DIFF_CONTINUE c=20 r=4
+        lcd_wait_for_click_delay(MSG_PRINT_CHECKING_FAILED_TIMEOUT);
+        //???custom_message_type=CUSTOM_MSG_TYPE_STATUS; // display / status-line recovery
+        lcd_update_enable(true); // display / status-line recovery
+        break;
+    case ClCheckGcode::_Strict:
+        lcd_show_fullscreen_message_and_wait_P(
+            _i("G-code sliced for a different level. Please re-slice the model again. Print cancelled.")); ////MSG_GCODE_DIFF_CANCELLED c=20 r=7
+        lcd_print_stop();
+        break;
+    case ClCheckGcode::_None:
+    case ClCheckGcode::_Undef:
+        break;
+    }
 }
 
 //-// -> cmdqueue ???
@@ -532,4 +521,25 @@ else {
 void ip4_to_str(char* dest, uint8_t* IP)
 {
     sprintf_P(dest, PSTR("%u.%u.%u.%u"), IP[0], IP[1], IP[2], IP[3]);
+}
+
+
+bool calibration_status_get(CalibrationStatus components)
+{
+    CalibrationStatus status = eeprom_read_byte((uint8_t*)EEPROM_CALIBRATION_STATUS_V2);
+    return ((status & components) == components);
+}
+
+void calibration_status_set(CalibrationStatus components)
+{
+    CalibrationStatus status = eeprom_read_byte((uint8_t*)EEPROM_CALIBRATION_STATUS_V2);
+    status |= components;
+    eeprom_update_byte((uint8_t*)EEPROM_CALIBRATION_STATUS_V2, status);
+}
+
+void calibration_status_clear(CalibrationStatus components)
+{
+    CalibrationStatus status = eeprom_read_byte((uint8_t*)EEPROM_CALIBRATION_STATUS_V2);
+    status &= ~components;
+    eeprom_update_byte((uint8_t*)EEPROM_CALIBRATION_STATUS_V2, status);
 }

@@ -324,6 +324,11 @@ msgstr "Provjera senzora"
 msgid "Checks"
 msgstr "Provjere"
 
+#. MSG_TM_ACK_ERROR c=18
+#: ../../Firmware/messages.cpp:172 ../../Firmware/ultralcd.cpp:5490
+msgid "Clear TM error"
+msgstr "Obriši TM pogrešku"
+
 #. MSG_NOT_COLOR c=19
 #: ../../Firmware/ultralcd.cpp:2237
 msgid "Color not correct"
@@ -622,6 +627,8 @@ msgid ""
 "For a Nozzle change please read\n"
 "prusa.io/nozzle-mk3s"
 msgstr ""
+"Za promjenu mlaznice pročitajte\n"
+"prusa.io/nozzle-mk3s"
 
 #. MSG_SELFTEST_PART_FAN c=20
 #: ../../Firmware/messages.cpp:83 ../../Firmware/ultralcd.cpp:7026
@@ -630,9 +637,9 @@ msgid "Front print fan?"
 msgstr "Prednji print vent?"
 
 #. MSG_BED_CORRECTION_FRONT c=14
-#: ../../Firmware/ultralcd.cpp:2773
-msgid "Front side[μm]"
-msgstr "Prednj str[μm]"
+#: ../../Firmware/ultralcd.cpp:2745
+msgid "Front side[µm]"
+msgstr "Prednj str[µm]"
 
 #. MSG_SELFTEST_FANS c=20
 #: ../../Firmware/ultralcd.cpp:7050
@@ -748,7 +755,7 @@ msgstr "Visoka sna"
 #. MSG_NOZZLE_CNG_CHANGED c=20 r=6
 #: ../../Firmware/messages.cpp:174 ../../Firmware/ultralcd.cpp:1036
 msgid "Hotend at 280C! Nozzle changed and tightened to specs?"
-msgstr ""
+msgstr "Zagrijati na 280C! Mlaznica promijenjena i stegnuta prema specifikacijama?"
 
 #. MSG_HOTEND_FAN_SPEED c=15
 #: ../../Firmware/messages.cpp:35 ../../Firmware/ultralcd.cpp:1145
@@ -757,9 +764,9 @@ msgid "Hotend fan:"
 msgstr "Hotend vent:"
 
 #. MSG_WIZARD_XYZ_CAL c=20 r=8
-#: ../../Firmware/ultralcd.cpp:4094
-msgid "I will run xyz calibration now. It will take approx. 12 mins."
-msgstr "Sada cu pokrenuti xyz kalibraciju. Trebat ce cca. 12 min."
+#: ../../Firmware/ultralcd.cpp:4030
+msgid "I will run xyz calibration now. It will take up to 24 mins."
+msgstr "Sada cu pokrenuti xyz kalibraciju. Trebat ce do 24 min."
 
 #. MSG_WIZARD_Z_CAL c=20 r=8
 #: ../../Firmware/ultralcd.cpp:4102
@@ -845,9 +852,9 @@ msgid "Left hotend fan?"
 msgstr "Lijevi hotend vent?"
 
 #. MSG_BED_CORRECTION_LEFT c=14
-#: ../../Firmware/ultralcd.cpp:2771
-msgid "Left side [μm]"
-msgstr "Lijeva str[μm]"
+#: ../../Firmware/ultralcd.cpp:2743
+msgid "Left side [µm]"
+msgstr "Lijeva str[µm]"
 
 #. MSG_BL_HIGH c=12
 #: ../../Firmware/messages.cpp:152 ../../Firmware/ultralcd.cpp:5884
@@ -1147,7 +1154,7 @@ msgstr "Mlaznica"
 #. MSG_NOZZLE_CNG_MENU c=18
 #: ../../Firmware/messages.cpp:173 ../../Firmware/ultralcd.cpp:4580
 msgid "Nozzle change"
-msgstr ""
+msgstr "Promjena mlaznice"
 
 #. MSG_NOZZLE_DIAMETER c=10
 #: ../../Firmware/messages.cpp:133 ../../Firmware/ultralcd.cpp:4565
@@ -1486,9 +1493,9 @@ msgid "RPi port"
 msgstr "RPi utor"
 
 #. MSG_BED_CORRECTION_REAR c=14
-#: ../../Firmware/ultralcd.cpp:2774
-msgid "Rear side [μm]"
-msgstr "Zad. str.[μm]"
+#: ../../Firmware/ultralcd.cpp:2746
+msgid "Rear side [µm]"
+msgstr "Zad. str.[µm]"
 
 #. MSG_RECOVERING_PRINT c=20
 #: ../../Firmware/Marlin_main.cpp:10954
@@ -1535,9 +1542,9 @@ msgid "Right"
 msgstr "Tocno"
 
 #. MSG_BED_CORRECTION_RIGHT c=14
-#: ../../Firmware/ultralcd.cpp:2772
-msgid "Right side[μm]"
-msgstr "Desna str.[μm]"
+#: ../../Firmware/ultralcd.cpp:2744
+msgid "Right side[µm]"
+msgstr "Desna str.[µm]"
 
 #. MSG_WIZARD_RERUN c=20 r=7
 #: ../../Firmware/ultralcd.cpp:3903

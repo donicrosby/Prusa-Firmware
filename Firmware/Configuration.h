@@ -19,15 +19,15 @@ extern PGM_P sPrinterName;
 #define FW_MAJOR 3
 #define FW_MINOR 12
 #define FW_REVISION 0
-#define FW_FLAVOR RC      //uncomment if DEBUG, DEVEL, ALPHA, BETA or RC
-#define FW_FLAVERSION 1     //uncomment if FW_FLAVOR is defined and versioning is needed.
+//#define FW_FLAVOR RC      //uncomment if DEBUG, DEVEL, ALPHA, BETA or RC
+//#define FW_FLAVERSION 1     //uncomment if FW_FLAVOR is defined and versioning is needed. Limited to max 8.
 #ifndef FW_FLAVOR
     #define FW_VERSION STR(FW_MAJOR) "." STR(FW_MINOR) "." STR(FW_REVISION)
 #else
     #define FW_VERSION STR(FW_MAJOR) "." STR(FW_MINOR) "." STR(FW_REVISION) "-" STR(FW_FLAVOR) "" STR(FW_FLAVERSION)
 #endif
 
-#define FW_COMMIT_NR 5576
+#define FW_COMMIT_NR 5672
 
 // FW_VERSION_UNKNOWN means this is an unofficial build.
 // The firmware should only be checked into github with this symbol.
@@ -531,36 +531,6 @@ your extruder heater takes 2 minutes to hit the target on heating.
 //#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
 
 #define DEFAULT_NOMINAL_FILAMENT_DIA  1.75  //Enter the diameter (in mm) of the filament generally used (3.0 mm or 1.75 mm). Used by the volumetric extrusion.
-
-// Calibration status of the machine, to be stored into the EEPROM,
-// (unsigned char*)EEPROM_CALIBRATION_STATUS
-enum CalibrationStatus
-{
-	// Freshly assembled, needs to peform a self-test and the XYZ calibration.
-	CALIBRATION_STATUS_ASSEMBLED = 255,
-
-	// For the wizard: self test has been performed, now the XYZ calibration is needed.
-	CALIBRATION_STATUS_XYZ_CALIBRATION = 250,
-
-	// For the wizard: factory assembled, needs to run Z calibration.
-	CALIBRATION_STATUS_Z_CALIBRATION = 240,
-
-#ifdef TEMP_MODEL
-	// The XYZ calibration has been performed, needs to run Temp model calibration.
-	CALIBRATION_STATUS_TEMP_MODEL_CALIBRATION = 235,
-#endif //TEMP_MODEL
-
-// The XYZ calibration AND OR Temp model calibration has been performed, now it remains to run the V2Calibration.gcode.
-	CALIBRATION_STATUS_LIVE_ADJUST = 230,
-
-    // Calibrated, ready to print.
-    CALIBRATION_STATUS_CALIBRATED = 1,
-
-    // Legacy: resetted by issuing a G86 G-code.
-    // This value can only be expected after an upgrade from the initial MK2 firmware releases.
-    // Currently the G86 sets the calibration status to 
-    CALIBRATION_STATUS_UNKNOWN = 0,
-};
 
 // Try to maintain a minimum distance from the bed even when Z is
 // unknown when doing the following operations
