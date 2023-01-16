@@ -1,0 +1,12 @@
+[32mprogmem.sh started(B[m
+ progmem.sh (0) - checking input files
+ progmem.sh (1) - removing output files
+ progmem.sh (2) - listing symbol table of section '.text'
+ progmem.sh (3) - calculating start and end address
+  START address = 0x0000040e
+  STOP  address = 0x0000040e
+ progmem.sh (4) - extracting string data from elf
+/home/doni/prusa/PF-build-env-1.0.6.1/hardware/tools/avr/bin/avr-objdump: error: the stop address should be after the start address
+ progmem.sh (5) - preparing string data
+ progmem.sh (6) - converting string data
+[32mprogmem.sh finished(B[m

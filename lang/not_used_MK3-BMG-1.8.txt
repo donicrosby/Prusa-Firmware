@@ -1,0 +1,26 @@
+TEXT NF \ 
+ 0.3 or older
+ 0.4 or newer
+Are left and right Z~carriages all up?
+Auto power
+Calibrating XYZ. Rotate the knob to move the Z carriage up to the end stoppers. Click when done.
+Calibrating Z. Rotate the knob to move the Z carriage up to the end stoppers. Click when done.
+Cont.
+Current
+Error - static memory has been overwritten
+FS Action
+FS v0.3 or older
+FS v0.4 or newer
+High power
+Insert the filament (do not load it) into the extruder and then press the knob.
+Iteration
+MK3S firmware detected on MK3 printer
+Pause
+Please check the IR sensor connection, unload filament if present.
+Please unload the filament first, then repeat this action.
+Printer IP Addr:
+Sensor verified, remove the filament now.
+Show end stops
+unknown state
+Used during print
+Verification failed, remove the filament and try again.

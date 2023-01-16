@@ -1,0 +1,14 @@
+update_lang.sh started
+ selected language=cz
+ checking files...OK
+ checking symbols...OK
+ calculating vars:
+  pri_lang_addr   =0x0000901b
+  sec_lang_addr   =0x00000516
+  sec_lang_size   =0x3000
+  lang_table_addr =0x0600
+  lang_table_size =0x2f00 (=12032 bytes)
+  lang_file_size  =0x25fa (=9722 bytes)
+updating 'firmware.bin'...
+converting to hex...
+update_lang.sh finished with success

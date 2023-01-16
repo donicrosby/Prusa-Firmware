@@ -17,9 +17,9 @@ extern PGM_P sPrinterName;
 
 // Firmware version
 #define FW_MAJOR 3
-#define FW_MINOR 11
+#define FW_MINOR 12
 #define FW_REVISION 0
-//#define FW_FLAVOR RC      //uncomment if DEBUG, DEVEL, APLHA, BETA or RC
+#define FW_FLAVOR RC      //uncomment if DEBUG, DEVEL, ALPHA, BETA or RC
 #define FW_FLAVERSION 1     //uncomment if FW_FLAVOR is defined and versioning is needed.
 #ifndef FW_FLAVOR
     #define FW_VERSION STR(FW_MAJOR) "." STR(FW_MINOR) "." STR(FW_REVISION)
@@ -27,7 +27,7 @@ extern PGM_P sPrinterName;
     #define FW_VERSION STR(FW_MAJOR) "." STR(FW_MINOR) "." STR(FW_REVISION) "-" STR(FW_FLAVOR) "" STR(FW_FLAVERSION)
 #endif
 
-#define FW_COMMIT_NR 4955
+#define FW_COMMIT_NR 5576
 
 // FW_VERSION_UNKNOWN means this is an unofficial build.
 // The firmware should only be checked into github with this symbol.
@@ -444,10 +444,12 @@ your extruder heater takes 2 minutes to hit the target on heating.
 // Custom M code points
 #define CUSTOM_M_CODES
 #ifdef CUSTOM_M_CODES
+#ifdef ENABLE_AUTO_BED_LEVELING
   #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
   #define Z_PROBE_OFFSET_RANGE_MIN -15
   #define Z_PROBE_OFFSET_RANGE_MAX -5
-#endif
+#endif // ENABLE_AUTO_BED_LEVELING
+#endif // CUSTOM_M_CODES
 
 
 // EEPROM
@@ -488,11 +490,6 @@ your extruder heater takes 2 minutes to hit the target on heating.
 
 // Increase the FAN pwm frequency. Removes the PWM noise but increases heating in the FET/Arduino
 //#define FAST_PWM_FAN
-
-// Temperature status LEDs that display the hotend and bet temperature.
-// If all hotends and bed temperature and temperature setpoint are < 54C then the BLUE led is on.
-// Otherwise the RED led is on. There is 1C hysteresis.
-//#define TEMP_STAT_LEDS
 
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
@@ -548,7 +545,12 @@ enum CalibrationStatus
 	// For the wizard: factory assembled, needs to run Z calibration.
 	CALIBRATION_STATUS_Z_CALIBRATION = 240,
 
-	// The XYZ calibration has been performed, now it remains to run the V2Calibration.gcode.
+#ifdef TEMP_MODEL
+	// The XYZ calibration has been performed, needs to run Temp model calibration.
+	CALIBRATION_STATUS_TEMP_MODEL_CALIBRATION = 235,
+#endif //TEMP_MODEL
+
+// The XYZ calibration AND OR Temp model calibration has been performed, now it remains to run the V2Calibration.gcode.
 	CALIBRATION_STATUS_LIVE_ADJUST = 230,
 
     // Calibrated, ready to print.
@@ -569,6 +571,5 @@ enum CalibrationStatus
 
 #include "Configuration_adv.h"
 #include "thermistortables.h"
-
 
 #endif //__CONFIGURATION_H

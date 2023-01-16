@@ -1,0 +1,14 @@
+TEXT NF \ 
+Are left and right Z~carriages all up?
+Auto power
+Calibrating XYZ. Rotate the knob to move the Z carriage up to the end stoppers. Click when done.
+Calibrating Z. Rotate the knob to move the Z carriage up to the end stoppers. Click when done.
+Current
+Error - static memory has been overwritten
+High power
+Iteration
+MK3 firmware detected on MK3S printer
+Printer IP Addr:
+Runouts
+Show end stops
+Used during print

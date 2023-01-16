@@ -1,0 +1,4 @@
+Dump memory
+FW crash detected! You can continue printing. Debug data available for analysis. Contact support to submit details.
+Refresh
+Sheet %.7s\x0aZ offset: %+1.3f mm\x0a%cContinue\x0a%cStart from zero
