@@ -9,7 +9,7 @@ for var_file  in $(ls ${VARIANTS_PATH}/*BMG* )
 do
     if [[ $var_file =~ "MK2" ]]
     then
-        LANGS="EN_ONLY"
+        LANGS="EN_FARM"
     else
         LANGS="ALL"
     fi
