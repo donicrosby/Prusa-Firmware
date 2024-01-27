@@ -18,14 +18,16 @@ ENV PRUSA_FIRMWARE_SOURCE ${PRUSA_BUILD_DIR}/firmware
 RUN mkdir -p ${PRUSA_FIRMWARE_SOURCE}
 WORKDIR ${PRUSA_FIRMWARE_SOURCE}
 
+COPY .git/ .git/
 COPY Firmware/ ./Firmware/
-COPY Catch2/ ./Catch2/
+COPY lib/ ./lib/
 COPY lang/ ./lang/
 COPY tools/ ./tools/
+COPY tests/ ./tests/
+COPY utils/ ./utils/
 COPY build-bmg.sh PF-build.sh MK404-build.sh docker/generate_build_env.sh ./
 
-RUN ./generate_build_env.sh && \
-    rm -rf ../PF-build-hex ../Prusa-Firmware-build
+RUN ./utils/bootstrap.py
 # ENV PRUSA_VARIANTS_DIR ${PRUSA_FIRMWARE_SOURCE}/Firmware/variants
 # ENV DUMMY_HEADER ${PRUSA_VARIANTS_DIR}/shouldnt-exist.h
 # RUN touch ${DUMMY_HEADER} && \
