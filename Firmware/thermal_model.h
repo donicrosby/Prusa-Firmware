@@ -6,7 +6,7 @@
 #include "planner.h"
 
 // shortcuts to get model defaults
-<<<<<<< HEAD:Firmware/temp_model.h
+<<<<<<<< HEAD:Firmware/temp_model.h
 #define __TEMP_MODEL_DEF(MODEL, VAR) TEMP_MODEL_##MODEL##_##VAR
 #define _TEMP_MODEL_DEF(MODEL, VAR)  __TEMP_MODEL_DEF(MODEL, VAR)
 #define TEMP_MODEL_DEF(VAR)          _TEMP_MODEL_DEF(TEMP_MODEL_DEFAULT, VAR)
@@ -21,7 +21,7 @@ constexpr uint8_t TEMP_MODEL_MAX_LAG_SIZE = 8; // * TEMP_MGR_INTV = 2160
 // resistance values for all fan levels
 constexpr uint8_t TEMP_MODEL_R_SIZE = (1 << FAN_SOFT_PWM_BITS);
 static const float TEMP_MODEL_R_DEFAULT[TEMP_MODEL_R_SIZE] PROGMEM = TEMP_MODEL_DEF(Rv);
-=======
+========
 #define __THERMAL_MODEL_DEF(MODEL, VAR) THERMAL_MODEL_##MODEL##_##VAR
 #define _THERMAL_MODEL_DEF(MODEL, VAR)  __THERMAL_MODEL_DEF(MODEL, VAR)
 #define THERMAL_MODEL_DEF(VAR)          _THERMAL_MODEL_DEF(THERMAL_MODEL_DEFAULT, VAR)
@@ -36,26 +36,26 @@ constexpr uint8_t THERMAL_MODEL_MAX_LAG_SIZE = 8; // * TEMP_MGR_INTV = 2160
 // resistance values for all fan levels
 constexpr uint8_t THERMAL_MODEL_R_SIZE = (1 << FAN_SOFT_PWM_BITS);
 static const float THERMAL_MODEL_R_DEFAULT[THERMAL_MODEL_R_SIZE] PROGMEM = THERMAL_MODEL_DEF(Rv);
->>>>>>> v3.13.2:Firmware/thermal_model.h
+>>>>>>>> v3.13.2:Firmware/thermal_model.h
 
 namespace thermal_model {
 
 struct model_data
 {
     // temporary buffers
-<<<<<<< HEAD:Firmware/temp_model.h
+<<<<<<<< HEAD:Firmware/temp_model.h
     float dT_lag_buf[TEMP_MODEL_MAX_LAG_SIZE]; // transport delay buffer
     uint8_t dT_lag_size = 0;                   // transport delay buffer size
     uint8_t dT_lag_idx = 0;                    // transport delay buffer index
     float dT_err_prev = 0;                     // previous temperature delta error
     float T_prev = 0;                          // last temperature extruder
-=======
+========
     float dT_lag_buf[THERMAL_MODEL_MAX_LAG_SIZE]; // transport delay buffer
     uint8_t dT_lag_size = 0;                      // transport delay buffer size
     uint8_t dT_lag_idx = 0;                       // transport delay buffer index
     float dT_err_prev = 0;                        // previous temperature delta error
     float T_prev = 0;                             // last temperature extruder
->>>>>>> v3.13.2:Firmware/thermal_model.h
+>>>>>>>> v3.13.2:Firmware/thermal_model.h
 
     // configurable parameters
     float P;                               // heater power (W)
@@ -64,11 +64,11 @@ struct model_data
     float C;                               // heatblock capacitance (J/K)
     float fS;                              // sim. 1st order IIR filter factor (f=100/27)
     uint16_t L;                            // sim. response lag (ms)
-<<<<<<< HEAD:Firmware/temp_model.h
+<<<<<<<< HEAD:Firmware/temp_model.h
     float R[TEMP_MODEL_R_SIZE];            // heatblock resistance for all fan levels (K/W)
-=======
+========
     float R[THERMAL_MODEL_R_SIZE];         // heatblock resistance for all fan levels (K/W)
->>>>>>> v3.13.2:Firmware/thermal_model.h
+>>>>>>>> v3.13.2:Firmware/thermal_model.h
     float Ta_corr;                         // ambient temperature correction (K)
 
     // thresholds

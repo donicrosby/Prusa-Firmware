@@ -3,6 +3,7 @@
 #include "Configuration.h"
 #include "language.h"
 #include "cmdqueue.h"
+#include "util.h"
 #include <stdio.h>
 #include <avr/pgmspace.h>
 
@@ -192,7 +193,7 @@ void dcode_3()
 
 #if 0
 extern float current_temperature_pinda;
-extern float axis_steps_per_unit[NUM_AXIS];
+extern float axis_steps_per_mm[NUM_AXIS];
 
 
 #define LOG(args...) printf(args)
@@ -478,7 +479,7 @@ void dcode_8()
 		{
 			uint16_t offs = 0;
 			if (i > 0) offs = eeprom_read_word(((uint16_t*)EEPROM_PROBE_TEMP_SHIFT) + (i - 1));
-			float foffs = ((float)offs) / cs.axis_steps_per_unit[Z_AXIS];
+			float foffs = ((float)offs) / cs.axis_steps_per_mm[Z_AXIS];
 			offs = 1000 * foffs;
 			printf_P(PSTR("temp_pinda=%dC temp_shift=%dum\n"), 35 + i * 5, offs);
 		}
@@ -584,7 +585,7 @@ void dcode_9()
 			if (code_seen('V')) // value to be written as simulated
 			{
 				adc_sim_mask |= (1 << index);
-				adc_values[index] = (((int)code_value()) << 4);
+				adc_values[index] = ((uint16_t)code_value_short() << 4);
 				printf_P(PSTR("ADC%d=%4d\n"), index, adc_values[index] >> 4);
 			}
 		}
@@ -822,7 +823,7 @@ void dcode_2130()
 			}
 			else if (strcmp(strchr_pointer + 7, "wave") == 0)
 			{
-				tmc2130_get_wave(axis, 0, stdout);
+				tmc2130_get_wave(axis, 0);
 			}
 		}
 		else if (strchr_pointer[1+5] == '!')
@@ -843,9 +844,9 @@ void dcode_2130()
 					uint16_t res_new = tmc2130_mres2usteps(mres);
 					tmc2130_set_res(axis, res_new);
 					if (res_new > res)
-						cs.axis_steps_per_unit[axis] *= (res_new / res);
+						cs.axis_steps_per_mm[axis] *= (res_new / res);
 					else
-						cs.axis_steps_per_unit[axis] /= (res / res_new);
+						cs.axis_steps_per_mm[axis] /= (res / res_new);
 				}
 			}
 			else if (strncmp(strchr_pointer + 7, "wave", 4) == 0)
@@ -865,7 +866,7 @@ void dcode_2130()
 }
 #endif //TMC2130
 
-#ifdef PAT9125
+#if defined(FILAMENT_SENSOR) && (FILAMENT_SENSOR_TYPE == FSENSOR_PAT9125)
     /*!
     ### D9125 - PAT9125 filament sensor <a href="https://reprap.org/wiki/G-code#D9:_Read.2FWrite_ADC">D9125: PAT9125 filament sensor</a>
     #### Usage
@@ -878,7 +879,6 @@ void dcode_2130()
     - `R` - Resolution. Not active in code
     - `X` - X values
     - `Y` - Y values
-    - `L` - Activate filament sensor log
     */
 void dcode_9125()
 {
@@ -912,15 +912,8 @@ void dcode_9125()
 		pat9125_y = (int)code_value();
 		LOG("pat9125_y=%d\n", pat9125_y);
 	}
-#ifdef DEBUG_FSENSOR_LOG
-	if (code_seen('L'))
-	{
-		fsensor_log = (int)code_value();
-		LOG("fsensor_log=%d\n", fsensor_log);
-	}
-#endif //DEBUG_FSENSOR_LOG
 }
-#endif //PAT9125
+#endif //defined(FILAMENT_SENSOR) && (FILAMENT_SENSOR_TYPE == FSENSOR_PAT9125)
 
 #endif //DEBUG_DCODES
 

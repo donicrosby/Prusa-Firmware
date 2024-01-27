@@ -3,89 +3,16 @@
 #include "Marlin.h"
 #include "planner.h"
 #include "temperature.h"
-#include "ultralcd.h"
 #include "ConfigurationStore.h"
-#include "Configuration_prusa.h"
-
-#ifdef MESH_BED_LEVELING
-#include "mesh_bed_leveling.h"
-#endif
+#include "Configuration_var.h"
 
 #ifdef TMC2130
 #include "tmc2130.h"
 #endif
 
-
 M500_conf cs;
 
-//! @brief Write data to EEPROM
-//! @param pos destination in EEPROM, 0 is start
-//! @param value value to be written
-//! @param size size of type pointed by value
-//! @param name name of variable written, used only for debug input if DEBUG_EEPROM_WRITE defined
-//! @retval true success
-//! @retval false failed
-#ifdef DEBUG_EEPROM_WRITE
-static bool EEPROM_writeData(uint8_t* pos, uint8_t* value, uint8_t size, const char* name)
-#else //DEBUG_EEPROM_WRITE
-static bool EEPROM_writeData(uint8_t* pos, uint8_t* value, uint8_t size, const char*)
-#endif //DEBUG_EEPROM_WRITE
-{
-#ifdef DEBUG_EEPROM_WRITE
-	printf_P(PSTR("EEPROM_WRITE_VAR addr=0x%04x size=0x%02x name=%s\n"), pos, size, name);
-#endif //DEBUG_EEPROM_WRITE
-  while (size--)
-  {
-
-        eeprom_update_byte(pos, *value);
-        if (eeprom_read_byte(pos) != *value) {
-            SERIAL_ECHOLNPGM("EEPROM Error");
-            return false;
-        }
-
-    pos++;
-    value++;
-  }
-    return true;
-}
-
-#ifdef DEBUG_EEPROM_READ
-static void EEPROM_readData(uint8_t* pos, uint8_t* value, uint8_t size, const char* name)
-#else //DEBUG_EEPROM_READ
-static void EEPROM_readData(uint8_t* pos, uint8_t* value, uint8_t size, const char*)
-#endif //DEBUG_EEPROM_READ
-{
-#ifdef DEBUG_EEPROM_READ
-	printf_P(PSTR("EEPROM_READ_VAR addr=0x%04x size=0x%02x name=%s\n"), pos, size, name);
-#endif //DEBUG_EEPROM_READ
-    while(size--)
-    {
-        *value = eeprom_read_byte(pos);
-        pos++;
-        value++;
-    }
-}
-
 #define EEPROM_VERSION "V2"
-
-#ifdef EEPROM_SETTINGS
-void Config_StoreSettings()
-{
-  strcpy(cs.version,"000"); //!< invalidate data first @TODO use erase to save one erase cycle
-  
-  if (EEPROM_writeData(reinterpret_cast<uint8_t*>(EEPROM_M500_base),reinterpret_cast<uint8_t*>(&cs),sizeof(cs),0), "cs, invalid version")
-  {
-#ifdef TEMP_MODEL
-      temp_model_save_settings();
-#endif
-      strcpy(cs.version,EEPROM_VERSION); //!< validate data if write succeed
-      EEPROM_writeData(reinterpret_cast<uint8_t*>(EEPROM_M500_base->version), reinterpret_cast<uint8_t*>(cs.version), sizeof(cs.version), "cs.version valid");
-  }
-
-  SERIAL_ECHO_START;
-  SERIAL_ECHOLNPGM("Settings Stored");
-}
-#endif //EEPROM_SETTINGS
 
 
 #ifndef DISABLE_M503
@@ -100,17 +27,17 @@ void Config_PrintSettings(uint8_t level)
 		"%SMaximum acceleration - normal (mm/s2):\n%S  M201 X%lu Y%lu Z%lu E%lu\n"
 		"%SMaximum acceleration - stealth (mm/s2):\n%S  M201 X%lu Y%lu Z%lu E%lu\n"
 		"%SAcceleration: P=print, R=retract, T=travel\n%S  M204 P%.2f R%.2f T%.2f\n"
-		"%SAdvanced variables: S=Min feedrate (mm/s), T=Min travel feedrate (mm/s), B=minimum segment time (ms), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)\n%S  M205 S%.2f T%.2f B%.2f X%.2f Y%.2f Z%.2f E%.2f\n"
+		"%SAdvanced variables: S=Min feedrate (mm/s), T=Min travel feedrate (mm/s), B=minimum segment time (us), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)\n%S  M205 S%.2f T%.2f B%lu X%.2f Y%.2f Z%.2f E%.2f\n"
 		"%SHome offset (mm):\n%S  M206 X%.2f Y%.2f Z%.2f\n"
 		),
-		echomagic, echomagic, cs.axis_steps_per_unit[X_AXIS], cs.axis_steps_per_unit[Y_AXIS], cs.axis_steps_per_unit[Z_AXIS], cs.axis_steps_per_unit[E_AXIS],
+		echomagic, echomagic, cs.axis_steps_per_mm[X_AXIS], cs.axis_steps_per_mm[Y_AXIS], cs.axis_steps_per_mm[Z_AXIS], cs.axis_steps_per_mm[E_AXIS],
 		echomagic, echomagic, cs.axis_ustep_resolution[X_AXIS], cs.axis_ustep_resolution[Y_AXIS], cs.axis_ustep_resolution[Z_AXIS], cs.axis_ustep_resolution[E_AXIS],
 		echomagic, echomagic, cs.max_feedrate_normal[X_AXIS], cs.max_feedrate_normal[Y_AXIS], cs.max_feedrate_normal[Z_AXIS], cs.max_feedrate_normal[E_AXIS],
 		echomagic, echomagic, cs.max_feedrate_silent[X_AXIS], cs.max_feedrate_silent[Y_AXIS], cs.max_feedrate_silent[Z_AXIS], cs.max_feedrate_silent[E_AXIS],
-		echomagic, echomagic, cs.max_acceleration_units_per_sq_second_normal[X_AXIS], cs.max_acceleration_units_per_sq_second_normal[Y_AXIS], cs.max_acceleration_units_per_sq_second_normal[Z_AXIS], cs.max_acceleration_units_per_sq_second_normal[E_AXIS],
-		echomagic, echomagic, cs.max_acceleration_units_per_sq_second_silent[X_AXIS], cs.max_acceleration_units_per_sq_second_silent[Y_AXIS], cs.max_acceleration_units_per_sq_second_silent[Z_AXIS], cs.max_acceleration_units_per_sq_second_silent[E_AXIS],
+		echomagic, echomagic, cs.max_acceleration_mm_per_s2_normal[X_AXIS], cs.max_acceleration_mm_per_s2_normal[Y_AXIS], cs.max_acceleration_mm_per_s2_normal[Z_AXIS], cs.max_acceleration_mm_per_s2_normal[E_AXIS],
+		echomagic, echomagic, cs.max_acceleration_mm_per_s2_silent[X_AXIS], cs.max_acceleration_mm_per_s2_silent[Y_AXIS], cs.max_acceleration_mm_per_s2_silent[Z_AXIS], cs.max_acceleration_mm_per_s2_silent[E_AXIS],
 		echomagic, echomagic, cs.acceleration, cs.retract_acceleration, cs.travel_acceleration,
-		echomagic, echomagic, cs.minimumfeedrate, cs.mintravelfeedrate, cs.minsegmenttime, cs.max_jerk[X_AXIS], cs.max_jerk[Y_AXIS], cs.max_jerk[Z_AXIS], cs.max_jerk[E_AXIS],
+		echomagic, echomagic, cs.minimumfeedrate, cs.mintravelfeedrate, cs.min_segment_time_us, cs.max_jerk[X_AXIS], cs.max_jerk[Y_AXIS], cs.max_jerk[Z_AXIS], cs.max_jerk[E_AXIS],
 		echomagic, echomagic, cs.add_homing[X_AXIS], cs.add_homing[Y_AXIS], cs.add_homing[Z_AXIS]
 #else //TMC2130
 	printf_P(PSTR(
@@ -118,14 +45,14 @@ void Config_PrintSettings(uint8_t level)
 		"%SMaximum feedrates (mm/s):\n%S  M203 X%.2f Y%.2f Z%.2f E%.2f\n"
 		"%SMaximum acceleration (mm/s2):\n%S  M201 X%lu Y%lu Z%lu E%lu\n"
 		"%SAcceleration: P=print, R=retract, T=travel\n%S  M204 P%.2f R%.2f T%.2f\n"
-		"%SAdvanced variables: S=Min feedrate (mm/s), T=Min travel feedrate (mm/s), B=minimum segment time (ms), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)\n%S  M205 S%.2f T%.2f B%.2f X%.2f Y%.2f Z%.2f E%.2f\n"
+		"%SAdvanced variables: S=Min feedrate (mm/s), T=Min travel feedrate (mm/s), B=minimum segment time (us), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)\n%S  M205 S%.2f T%.2f B%lu X%.2f Y%.2f Z%.2f E%.2f\n"
 		"%SHome offset (mm):\n%S  M206 X%.2f Y%.2f Z%.2f\n"
 		),
-		echomagic, echomagic, cs.axis_steps_per_unit[X_AXIS], cs.axis_steps_per_unit[Y_AXIS], cs.axis_steps_per_unit[Z_AXIS], cs.axis_steps_per_unit[E_AXIS],
+		echomagic, echomagic, cs.axis_steps_per_mm[X_AXIS], cs.axis_steps_per_mm[Y_AXIS], cs.axis_steps_per_mm[Z_AXIS], cs.axis_steps_per_mm[E_AXIS],
 		echomagic, echomagic, max_feedrate[X_AXIS], max_feedrate[Y_AXIS], max_feedrate[Z_AXIS], max_feedrate[E_AXIS],
-		echomagic, echomagic, max_acceleration_units_per_sq_second[X_AXIS], max_acceleration_units_per_sq_second[Y_AXIS], max_acceleration_units_per_sq_second[Z_AXIS], max_acceleration_units_per_sq_second[E_AXIS],
+		echomagic, echomagic, max_acceleration_mm_per_s2[X_AXIS], max_acceleration_mm_per_s2[Y_AXIS], max_acceleration_mm_per_s2[Z_AXIS], max_acceleration_mm_per_s2[E_AXIS],
 		echomagic, echomagic, cs.acceleration, cs.retract_acceleration, cs.travel_acceleration,
-		echomagic, echomagic, cs.minimumfeedrate, cs.mintravelfeedrate, cs.minsegmenttime, cs.max_jerk[X_AXIS], cs.max_jerk[Y_AXIS], cs.max_jerk[Z_AXIS], cs.max_jerk[E_AXIS],
+		echomagic, echomagic, cs.minimumfeedrate, cs.mintravelfeedrate, cs.min_segment_time_us, cs.max_jerk[X_AXIS], cs.max_jerk[Y_AXIS], cs.max_jerk[Z_AXIS], cs.max_jerk[E_AXIS],
 		echomagic, echomagic, cs.add_homing[X_AXIS], cs.add_homing[Y_AXIS], cs.add_homing[Z_AXIS]
 #endif //TMC2130
   );
@@ -176,8 +103,8 @@ void Config_PrintSettings(uint8_t level)
     printf_P(PSTR(
         "%SArc Settings: P:Max length(mm) S:Min length (mm) N:Corrections R:Min segments F:Segments/sec.\n%S  M214 P%.2f S%.2f N%d R%d F%d\n"),
         echomagic, echomagic, cs.mm_per_arc_segment, cs.min_mm_per_arc_segment, cs.n_arc_correction, cs.min_arc_segments, cs.arc_segments_per_sec);
-#ifdef TEMP_MODEL
-    temp_model_report_settings();
+#ifdef THERMAL_MODEL
+    thermal_model_report_settings();
 #endif
 }
 #endif
@@ -187,8 +114,8 @@ void Config_PrintSettings(uint8_t level)
 
 static_assert (EXTRUDERS == 1, "ConfigurationStore M500_conf not implemented for more extruders, fix filament_size array size.");
 static_assert (NUM_AXIS == 4, "ConfigurationStore M500_conf not implemented for more axis."
-        "Fix axis_steps_per_unit max_feedrate_normal max_acceleration_units_per_sq_second_normal max_jerk max_feedrate_silent"
-        " max_acceleration_units_per_sq_second_silent array size.");
+        "Fix axis_steps_per_mm max_feedrate_normal max_acceleration_mm_per_s2_normal max_jerk max_feedrate_silent"
+        " max_acceleration_mm_per_s2_silent array size.");
 #ifdef ENABLE_AUTO_BED_LEVELING
 static_assert (false, "zprobe_zoffset was not initialized in printers in field to -(Z_PROBE_OFFSET_FROM_EXTRUDER), so it contains"
         "0.0, if this is not acceptable, increment EEPROM_VERSION to force use default_conf");
@@ -251,50 +178,45 @@ static const M500_conf default_conf PROGMEM =
 };
 
 
-static bool is_uninitialized(void* addr, uint8_t len)
+void Config_StoreSettings()
 {
-    while(len--)
-    {
-        if(reinterpret_cast<uint8_t*>(addr)[len] != 0xff)
-            return false;
-    }
-    return true;
+  strcpy_P(cs.version, default_conf.version);
+  eeprom_update_block(reinterpret_cast<uint8_t*>(&cs), reinterpret_cast<uint8_t*>(EEPROM_M500_base), sizeof(cs));
+#ifdef THERMAL_MODEL
+  thermal_model_save_settings();
+#endif
+
+  SERIAL_ECHO_START;
+  SERIAL_ECHOLNPGM("Settings Stored");
 }
 
 
 //! @brief Read M500 configuration
-//! @retval true Succeeded. Stored settings retrieved or default settings retrieved in case EEPROM has been erased.
-//! @retval false Failed. Default settings has been retrieved, because of older version or corrupted data.
+//! @retval true Succeeded. Stored settings retrieved or default settings retrieved in case EEPROM cs was empty.
+//! @retval false Failed. Default settings has been retrieved, because of version mismatch
 bool Config_RetrieveSettings()
 {
-  bool previous_settings_retrieved = true;
-    char ver[4]=EEPROM_VERSION;
-    EEPROM_readData(reinterpret_cast<uint8_t*>(EEPROM_M500_base->version), reinterpret_cast<uint8_t*>(cs.version), sizeof(cs.version), "cs.version"); //read stored version
+    eeprom_read_block(reinterpret_cast<uint8_t*>(cs.version), reinterpret_cast<uint8_t*>(EEPROM_M500_base->version), sizeof(cs.version));
     //  SERIAL_ECHOLN("Version: [" << ver << "] Stored version: [" << cs.version << "]");
-    if (strncmp(ver,cs.version,3) == 0)  // version number match
+    if (strncmp_P(cs.version, default_conf.version, sizeof(EEPROM_VERSION)) == 0)  // version number match
     {
+        // Initialize arc interpolation settings in eeprom if they are not already
+        eeprom_init_default_float(&EEPROM_M500_base->mm_per_arc_segment, pgm_read_float(&default_conf.mm_per_arc_segment));
+        eeprom_init_default_float(&EEPROM_M500_base->min_mm_per_arc_segment, pgm_read_float(&default_conf.min_mm_per_arc_segment));
+        eeprom_init_default_byte(&EEPROM_M500_base->n_arc_correction, pgm_read_byte(&default_conf.n_arc_correction));
+        eeprom_init_default_word(&EEPROM_M500_base->min_arc_segments, pgm_read_word(&default_conf.min_arc_segments));
+        eeprom_init_default_word(&EEPROM_M500_base->arc_segments_per_sec, pgm_read_word(&default_conf.arc_segments_per_sec));
+        
+        // Initialize the travel_acceleration in eeprom if not already
+        eeprom_init_default_float(&EEPROM_M500_base->travel_acceleration, pgm_read_float(&default_conf.travel_acceleration));
 
-        EEPROM_readData(reinterpret_cast<uint8_t*>(EEPROM_M500_base), reinterpret_cast<uint8_t*>(&cs), sizeof(cs), "cs");
+        // Initialize the max_feedrate_silent and max_acceleration_mm_per_s2_silent in eeprom if not already
+        eeprom_init_default_block(&EEPROM_M500_base->max_feedrate_silent, sizeof(EEPROM_M500_base->max_feedrate_silent), default_conf.max_feedrate_silent);
+        eeprom_init_default_block(&EEPROM_M500_base->max_acceleration_mm_per_s2_silent, sizeof(EEPROM_M500_base->max_acceleration_mm_per_s2_silent), default_conf.max_acceleration_mm_per_s2_silent);
+
+        // load the CS to RAM
+        eeprom_read_block(reinterpret_cast<uint8_t*>(&cs), reinterpret_cast<uint8_t*>(EEPROM_M500_base), sizeof(cs));
         calculate_extruder_multipliers();
-
-    //if max_feedrate_silent and max_acceleration_units_per_sq_second_silent were never stored to eeprom, use default values:
-        for (uint8_t i = 0; i < (sizeof(cs.max_feedrate_silent)/sizeof(cs.max_feedrate_silent[0])); ++i)
-        {
-            const uint32_t erased = 0xffffffff;
-            if (is_uninitialized(&(cs.max_feedrate_silent[i]), sizeof(float))) {
-                memcpy_P(&cs.max_feedrate_silent[i],&default_conf.max_feedrate_silent[i], sizeof(cs.max_feedrate_silent[i]));
-            }
-            if (erased == cs.max_acceleration_units_per_sq_second_silent[i]) {
-                memcpy_P(&cs.max_acceleration_units_per_sq_second_silent[i],&default_conf.max_acceleration_units_per_sq_second_silent[i],sizeof(cs.max_acceleration_units_per_sq_second_silent[i]));
-            }
-        }
-        // Initialize arc interpolation settings if they are not already
-        if (is_uninitialized(&cs.mm_per_arc_segment, sizeof(cs.mm_per_arc_segment))) cs.mm_per_arc_segment = default_conf.mm_per_arc_segment;
-        if (is_uninitialized(&cs.min_mm_per_arc_segment, sizeof(cs.min_mm_per_arc_segment))) cs.min_mm_per_arc_segment = default_conf.min_mm_per_arc_segment;
-        if (is_uninitialized(&cs.n_arc_correction, sizeof(cs.n_arc_correction))) cs.n_arc_correction = default_conf.n_arc_correction;
-        if (is_uninitialized(&cs.min_arc_segments, sizeof(cs.min_arc_segments))) cs.min_arc_segments = default_conf.min_arc_segments;
-        if (is_uninitialized(&cs.arc_segments_per_sec, sizeof(cs.arc_segments_per_sec))) cs.arc_segments_per_sec = default_conf.arc_segments_per_sec;
-
 
 #ifdef TMC2130
     for (uint8_t j = X_AXIS; j <= Y_AXIS; j++)
@@ -303,10 +225,10 @@ bool Config_RetrieveSettings()
         cs.max_feedrate_normal[j] = NORMAL_MAX_FEEDRATE_XY;
       if (cs.max_feedrate_silent[j] > SILENT_MAX_FEEDRATE_XY)
         cs.max_feedrate_silent[j] = SILENT_MAX_FEEDRATE_XY;
-      if (cs.max_acceleration_units_per_sq_second_normal[j] > NORMAL_MAX_ACCEL_XY)
-        cs.max_acceleration_units_per_sq_second_normal[j] = NORMAL_MAX_ACCEL_XY;
-      if (cs.max_acceleration_units_per_sq_second_silent[j] > SILENT_MAX_ACCEL_XY)
-        cs.max_acceleration_units_per_sq_second_silent[j] = SILENT_MAX_ACCEL_XY;
+      if (cs.max_acceleration_mm_per_s2_normal[j] > NORMAL_MAX_ACCEL_XY)
+        cs.max_acceleration_mm_per_s2_normal[j] = NORMAL_MAX_ACCEL_XY;
+      if (cs.max_acceleration_mm_per_s2_silent[j] > SILENT_MAX_ACCEL_XY)
+        cs.max_acceleration_mm_per_s2_silent[j] = SILENT_MAX_ACCEL_XY;
     }
         
     if(cs.axis_ustep_resolution[X_AXIS] == 0xff){ cs.axis_ustep_resolution[X_AXIS] = TMC2130_USTEPS_XY; }
@@ -320,15 +242,12 @@ bool Config_RetrieveSettings()
     tmc2130_set_res(E_AXIS, cs.axis_ustep_resolution[E_AXIS]);
 #endif //TMC2130
 
-        if(is_uninitialized(&cs.travel_acceleration, sizeof(cs.travel_acceleration)))
-            cs.travel_acceleration = cs.acceleration;
-
 		reset_acceleration_rates();
 
     // Call updatePID (similar to when we have processed M301)
     updatePID();
-#ifdef TEMP_MODEL
-    temp_model_load_settings();
+#ifdef THERMAL_MODEL
+    thermal_model_load_settings();
 #endif
 
         SERIAL_ECHO_START;
@@ -337,19 +256,13 @@ bool Config_RetrieveSettings()
     else
     {
         Config_ResetDefault();
-    //Return false to inform user that eeprom version was changed and firmware is using default hardcoded settings now.
-    //In case that storing to eeprom was not used yet, do not inform user that hardcoded settings are used.
-    if (eeprom_read_byte(reinterpret_cast<uint8_t*>(&(EEPROM_M500_base->version[0]))) != 0xFF ||
-      eeprom_read_byte(reinterpret_cast<uint8_t*>(&(EEPROM_M500_base->version[1]))) != 0xFF ||
-      eeprom_read_byte(reinterpret_cast<uint8_t*>(&(EEPROM_M500_base->version[2]))) != 0xFF)
-    {
-      previous_settings_retrieved = false;
+        //Return false to inform user that eeprom version was changed and firmware is using default hardcoded settings now.
+        //In case that storing to eeprom was not used yet, do not inform user that hardcoded settings are used.
+        if (eeprom_is_initialized_block(EEPROM_M500_base->version, sizeof(EEPROM_M500_base->version))) {
+            return false;
+        }
     }
-    }
-    #ifdef EEPROM_CHITCHAT
-      Config_PrintSettings();
-    #endif
-  return previous_settings_retrieved;
+    return true;
 }
 #endif
 
@@ -363,8 +276,8 @@ void Config_ResetDefault()
 #ifdef PIDTEMP
     updatePID();
 #endif//PIDTEMP
-#ifdef TEMP_MODEL
-    temp_model_reset_settings();
+#ifdef THERMAL_MODEL
+    thermal_model_reset_settings();
 #endif
 
   calculate_extruder_multipliers();

@@ -4,10 +4,10 @@
 #include "cmdqueue.h"
 #include "temperature.h"
 #include "cardreader.h"
-#include "conv2str.h"
 #include "util.h"
 #include "ultralcd.h"
-#include "fsensor.h" //to be converted to Filament_sensor.h...
+#include "Filament_sensor.h"
+#include "language.h"
 
 #ifdef PRUSA_FARM
 uint8_t farm_mode = 0;
@@ -86,14 +86,14 @@ static void prusa_stat_printinfo() {
     SERIAL_ECHOPGM("[TFU:");
     SERIAL_ECHO(total_filament_used);
     SERIAL_ECHOPGM("][PCD:");
-    SERIAL_ECHO(itostr3(card.percentDone()));
+    SERIAL_ECHO((int)card.percentDone());
     SERIAL_ECHOPGM("][FEM:");
-    SERIAL_ECHO(itostr3(feedmultiply));
+    SERIAL_ECHO(feedmultiply);
     SERIAL_ECHOPGM("][FNM:");
     SERIAL_ECHO(card.longFilename[0] ? card.longFilename : card.filename);
     SERIAL_ECHOPGM("][TIM:");
     if (starttime != 0) {
-        SERIAL_ECHO(_millis() / 1000 - starttime / 1000);
+        SERIAL_ECHO((_millis() - starttime) / 1000);
     }
     else {
         SERIAL_ECHO(0);
@@ -164,7 +164,7 @@ static void trace() {
 
 void serial_read_stream() {
 
-    setAllTargetHotends(0);
+    setTargetHotend(0);
     setTargetBed(0);
 
     lcd_clear();
@@ -242,7 +242,7 @@ void prusa_statistics(uint8_t _message) {
         else if (isPrintPaused) {
             prusa_statistics_case0(14);
         }
-        else if (IS_SD_PRINTING || loading_flag) {
+        else if (IS_SD_PRINTING || (eFilamentAction != FilamentAction::None)) {
             prusa_statistics_case0(4);
         }
         else {
@@ -270,7 +270,7 @@ void prusa_statistics(uint8_t _message) {
         status_number = 3;
         farm_timer = 1;
 
-        if (IS_SD_PRINTING || loading_flag) {
+        if (IS_SD_PRINTING || (eFilamentAction != FilamentAction::None)) {
             SERIAL_ECHO('{');
             prusa_stat_printerstatus(4);
             prusa_stat_farm_number();
@@ -374,7 +374,7 @@ void prusa_statistics_update_from_status_screen() {
         switch (farm_timer) {
         case 8:
             prusa_statistics(21);
-            if(loading_flag)
+            if(eFilamentAction != FilamentAction::None)
                 prusa_statistics(22);
             break;
         case 5:
@@ -390,12 +390,8 @@ void prusa_statistics_update_from_lcd_update() {
 }
 
 void farm_mode_init() {
-    farm_mode = eeprom_read_byte((uint8_t*)EEPROM_FARM_MODE); 
-    if (farm_mode == 0xFF) {
-        farm_mode = false; //if farm_mode has not been stored to eeprom yet and farm number is set to zero or EEPROM is fresh, deactivate farm mode
-        eeprom_update_byte((uint8_t*)EEPROM_FARM_MODE, farm_mode);
-    }
-    else if (farm_mode) {
+    farm_mode = eeprom_init_default_byte((uint8_t*)EEPROM_FARM_MODE, 0); 
+    if (farm_mode) {
         no_response = true; //we need confirmation by recieving PRUSA thx
         prusa_statistics(8);
 #ifdef HAS_SECOND_SERIAL_PORT
@@ -405,7 +401,7 @@ void farm_mode_init() {
 #ifdef FILAMENT_SENSOR
         //to be converted to Filament_sensor.h...
         //disabled filament autoload (PFW360)
-        fsensor_autoload_set(false);
+        fsensor.setAutoLoadEnabled(false);
 #endif //FILAMENT_SENSOR
         // ~ FanCheck -> on
         eeprom_update_byte((uint8_t*)EEPROM_FAN_CHECK_ENABLED, true);

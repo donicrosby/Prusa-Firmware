@@ -912,13 +912,13 @@ void world2machine_update_current()
 
 static inline void go_xyz(float x, float y, float z, float fr)
 {
-    plan_buffer_line(x, y, z, current_position[E_AXIS], fr, active_extruder);
+    plan_buffer_line(x, y, z, current_position[E_AXIS], fr);
     st_synchronize();
 }
 
 static inline void go_xy(float x, float y, float fr)
 {
-    plan_buffer_line(x, y, current_position[Z_AXIS], current_position[E_AXIS], fr, active_extruder);
+    plan_buffer_line(x, y, current_position[Z_AXIS], current_position[E_AXIS], fr);
     st_synchronize();
 }
 
@@ -953,7 +953,12 @@ bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, int
 	bool high_deviation_occured = false; 
     bedPWMDisabled = 1;
 #ifdef TMC2130
-	FORCE_HIGH_POWER_START;
+    bool bHighPowerForced = false;
+	if (tmc2130_mode == TMC2130_MODE_SILENT) 
+    {
+        FORCE_HIGH_POWER_START;
+        bHighPowerForced = true;
+    }
 #endif
 	//printf_P(PSTR("Min. Z: %f\n"), minimum_z);
 	#ifdef SUPPORT_VERBOSITY
@@ -996,8 +1001,7 @@ bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, int
 		//printf_P(PSTR("Zs: %f, Z: %f, delta Z: %f"), z_bckp, current_position[Z_AXIS], (z_bckp - current_position[Z_AXIS]));
 		if (fabs(current_position[Z_AXIS] - z_bckp) < 0.025) {
 			//printf_P(PSTR("PINDA triggered immediately, move Z higher and repeat measurement\n")); 
-			current_position[Z_AXIS] += 0.5;
-			go_to_current(homing_feedrate[Z_AXIS]/60);
+			raise_z(0.5);
 			current_position[Z_AXIS] = minimum_z;
             go_to_current(homing_feedrate[Z_AXIS]/(4*60));
             // we have to let the planner know where we are right now as it is not where we said to go.
@@ -1048,7 +1052,7 @@ bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, int
     enable_z_endstop(endstop_z_enabled);
 //    SERIAL_ECHOLNPGM("find_bed_induction_sensor_point_z 3");
 #ifdef TMC2130
-	FORCE_HIGH_POWER_END;
+    if (bHighPowerForced) FORCE_HIGH_POWER_END;
 #endif
     bedPWMDisabled = 0;
 	return true;
@@ -1058,7 +1062,7 @@ error:
     enable_endstops(endstops_enabled);
     enable_z_endstop(endstop_z_enabled);
 #ifdef TMC2130
-	FORCE_HIGH_POWER_END;
+	if (bHighPowerForced) FORCE_HIGH_POWER_END;
 #endif
     bedPWMDisabled = 0;
 	return false;
@@ -2791,19 +2795,22 @@ canceled:
 #endif //NEW_XYZCAL
 
 bool sample_z() {
-	bool sampled = true;
-	//make space
-	current_position[Z_AXIS] += 150;
-	go_to_current(homing_feedrate[Z_AXIS] / 60);
-	//plan_buffer_line_curposXYZE(feedrate, active_extruder););
+    bool sampled = true;
+    // make some space for the sheet
+    // Avoid calling raise_z(), because a false triggering stallguard may prevent the Z from moving.
+    // The extruder then may ram the sheet hard if not going down from some ~150mm height
+    current_position[Z_AXIS] = 0.F;
+    destination[Z_AXIS] = 150.F;
+    plan_buffer_line_destinationXYZE(homing_feedrate[Z_AXIS] / 60);
 
-	lcd_show_fullscreen_message_and_wait_P(_T(MSG_PLACE_STEEL_SHEET));
+    lcd_show_fullscreen_message_and_wait_P(_T(MSG_PLACE_STEEL_SHEET));
 
-	// Sample Z heights for the mesh bed leveling.
-	// In addition, store the results into an eeprom, to be used later for verification of the bed leveling process.
-	if (!sample_mesh_and_store_reference()) sampled = false;
+    // Sample Z heights for the mesh bed leveling.
+    // In addition, store the results into an eeprom, to be used later for verification of the bed leveling process.
+    if (!sample_mesh_and_store_reference())
+        sampled = false;
 
-	return sampled;
+    return sampled;
 }
 
 void go_home_with_z_lift()
@@ -3033,7 +3040,7 @@ bool scan_bed_induction_points(int8_t verbosity_level)
 // To replace loading of the babystep correction.
 static void shift_z(float delta)
 {
-    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] - delta, current_position[E_AXIS], homing_feedrate[Z_AXIS]/40, active_extruder);
+    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] - delta, current_position[E_AXIS], homing_feedrate[Z_AXIS]/40);
     st_synchronize();
     plan_set_z_position(current_position[Z_AXIS]);
 }
@@ -3059,7 +3066,7 @@ void babystep_load()
         SERIAL_ECHO(", current Z: ");
         SERIAL_ECHO(current_position[Z_AXIS]);
         SERIAL_ECHO("correction: ");
-        SERIAL_ECHO(float(babystepLoadZ) / float(axis_steps_per_unit[Z_AXIS]));
+        SERIAL_ECHO(float(babystepLoadZ) / float(axis_steps_per_mm[Z_AXIS]));
         SERIAL_ECHOLN("");
     #endif
     }
@@ -3068,12 +3075,12 @@ void babystep_load()
 void babystep_apply()
 {
     babystep_load();
-    shift_z(- float(babystepLoadZ) / float(cs.axis_steps_per_unit[Z_AXIS]));
+    shift_z(- float(babystepLoadZ) / float(cs.axis_steps_per_mm[Z_AXIS]));
 }
 
 void babystep_undo()
 {
-      shift_z(float(babystepLoadZ) / float(cs.axis_steps_per_unit[Z_AXIS]));
+      shift_z(float(babystepLoadZ) / float(cs.axis_steps_per_mm[Z_AXIS]));
       babystepLoadZ = 0;
 }
 
@@ -3105,40 +3112,13 @@ void count_xyz_details(float (&distanceMin)[2]) {
 		distanceMin[mesh_point] = (y - Y_MIN_POS_CALIBRATION_POINT_OUT_OF_REACH);
 	}
 }
-/*
-e_MBL_TYPE e_mbl_type = e_MBL_OPTIMAL;
-
-void mbl_mode_set() {
-	switch (e_mbl_type) {
-		case e_MBL_OPTIMAL: e_mbl_type = e_MBL_PREC; break;
-		case e_MBL_PREC: e_mbl_type = e_MBL_FAST; break;
-		case e_MBL_FAST: e_mbl_type = e_MBL_OPTIMAL; break;
-		default: e_mbl_type = e_MBL_OPTIMAL; break;
-	}
-	eeprom_update_byte((uint8_t*)EEPROM_MBL_TYPE,(uint8_t)e_mbl_type);
-}
-
-void mbl_mode_init() {
-	uint8_t mbl_type = eeprom_read_byte((uint8_t*)EEPROM_MBL_TYPE);
-	if (mbl_type == 0xFF) e_mbl_type = e_MBL_OPTIMAL;
-	else e_mbl_type = mbl_type;
-}
-*/
 
 void mbl_settings_init() {
 //3x3 mesh; 3 Z-probes on each point, magnet elimination on
 //magnet elimination: use aaproximate Z-coordinate instead of measured values for points which are near magnets
-	if (eeprom_read_byte((uint8_t*)EEPROM_MBL_MAGNET_ELIMINATION) == 0xFF) {
-		eeprom_update_byte((uint8_t*)EEPROM_MBL_MAGNET_ELIMINATION, 1);
-	}
-	if (eeprom_read_byte((uint8_t*)EEPROM_MBL_POINTS_NR) == 0xFF) {
-		eeprom_update_byte((uint8_t*)EEPROM_MBL_POINTS_NR, 3);
-	}
-	mbl_z_probe_nr = eeprom_read_byte((uint8_t*)EEPROM_MBL_PROBE_NR);
-	if (mbl_z_probe_nr == 0xFF) {
-		mbl_z_probe_nr = 3;
-		eeprom_update_byte((uint8_t*)EEPROM_MBL_PROBE_NR, mbl_z_probe_nr);
-	}
+	eeprom_init_default_byte((uint8_t*)EEPROM_MBL_MAGNET_ELIMINATION, 1);
+	eeprom_init_default_byte((uint8_t*)EEPROM_MBL_POINTS_NR, 3);
+	mbl_z_probe_nr = eeprom_init_default_byte((uint8_t*)EEPROM_MBL_PROBE_NR, 3);
 }
 
 //parameter ix: index of mesh bed leveling point in X-axis (for meas_points == 7 is valid range from 0 to 6; for meas_points == 3 is valid range from 0 to 2 )  

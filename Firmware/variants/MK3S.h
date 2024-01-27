@@ -388,7 +388,7 @@
 #define TEMP_RUNAWAY_EXTRUDER_TIMEOUT 45
 
 // model-based temperature check
-<<<<<<< HEAD:Firmware/variants/1_75mm_MK3S-EINSy10a-E3Dv6full.h
+<<<<<<<< HEAD:Firmware/variants/1_75mm_MK3S-EINSy10a-E3Dv6full.h
 #define TEMP_MODEL 1              // enable model-based temperature checks
 #define TEMP_MODEL_DEBUG 1        // extended runtime logging
 
@@ -409,7 +409,7 @@
 
 #include "temp_model/e3d_v6.h"
 #define TEMP_MODEL_DEFAULT E3D_V6 // Default model parameters
-=======
+========
 #define THERMAL_MODEL 1              // enable model-based temperature checks
 #define THERMAL_MODEL_DEBUG 1        // extended runtime logging
 
@@ -430,7 +430,7 @@
 
 #include "thermal_model/e3d_v6.h"
 #define THERMAL_MODEL_DEFAULT E3D_V6 // Default model parameters
->>>>>>> v3.13.2:Firmware/variants/MK3S.h
+>>>>>>>> v3.13.2:Firmware/variants/MK3S.h
 
 
 /*------------------------------------
