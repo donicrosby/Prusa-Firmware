@@ -7,11 +7,14 @@ RUN apt-get update && apt-get install -y \
   zip \
   python3 \
   python3-pip \
+  python3-venv \
+  python3-polib \
+  python3-pyelftools \
+  python3-regex \
   python-is-python3 \
   xz-utils \
   bzip2 \
   xxd \
-  && pip3 install -U polib pyelftools \
   && rm -rf /var/lib/apt/lists/*
 ENV PRUSA_BUILD_DIR /prusa
 ENV PRUSA_FIRMWARE_SOURCE ${PRUSA_BUILD_DIR}/firmware
